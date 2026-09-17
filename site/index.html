@@ -43,6 +43,10 @@
     color:var(--fg-soft);font-size:13.5px;padding:5px 10px;border-radius:6px;
   }
   nav.top-nav a:hover{background:var(--bg-soft);color:var(--fg);text-decoration:none}
+  nav.top-nav a.nav-cta{
+    background:var(--accent);color:#fff;font-weight:600;margin-left:6px;
+  }
+  nav.top-nav a.nav-cta:hover{background:#1d4e87;color:#fff}
 
   /* ---------- 通用区块 ---------- */
   section{padding:64px 0;border-bottom:1px solid var(--line)}
@@ -69,6 +73,16 @@
     background:var(--bg-card);border:1px solid var(--line-strong);
     border-radius:999px;padding:3px 11px
   }
+  .cta{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 20px}
+  .cta .btn,.cta .btn-ghost{
+    display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;
+    border-radius:8px;padding:9px 18px
+  }
+  .cta .btn{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+  .cta .btn:hover{background:#1d4e87;border-color:#1d4e87;text-decoration:none}
+  .cta .btn-ghost{background:var(--bg-card);color:var(--fg);border:1px solid var(--line-strong)}
+  .cta .btn-ghost:hover{background:var(--bg-soft);text-decoration:none}
+  .cta .note{font-size:13.5px;color:var(--fg-mute)}
   .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px}
   .metric{
     background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);
@@ -223,6 +237,7 @@
       <a href="#pitfalls">踩坑</a>
       <a href="#sample">样例</a>
       <a href="#compliance">合规</a>
+      <a class="nav-cta" href="https://github.com/owdeky017-ui/weibo-interaction-tool/releases/latest">下载</a>
     </nav>
   </div>
 </header>
@@ -237,6 +252,12 @@
       手写抓取脚本 → 浏览器自动化 → 文本分析 → 桌面工具 → 逆向还原 → 性能改造，
       每一版都是因为上一版真的不够用才换的。
     </p>
+    <div class="cta">
+      <a class="btn" href="https://github.com/owdeky017-ui/weibo-interaction-tool/releases/latest">下载 Windows 免安装版</a>
+      <a class="btn-ghost" href="https://github.com/owdeky017-ui/weibo-interaction-tool">查看源码</a>
+      <span class="note">解压即用，不需要装 Python</span>
+    </div>
+
     <div class="tags">
       <span class="tag">Python 3.13</span>
       <span class="tag">tkinter</span>
