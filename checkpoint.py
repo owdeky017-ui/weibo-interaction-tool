@@ -1,6 +1,6 @@
 """断点续传存储（SQLite）。
 
-原实现把整份断点放在一个 JSON 文件里，每次保存都要
+早期版本把整份断点放在一个 JSON 文件里，每次保存都要
 「读全量 → 按 _key 在内存里合并 → 写全量」，复杂度 O(记录数)；
 实测单个断点文件已到 665 KB，再涨下去每次保存都会明显变慢。
 
@@ -47,7 +47,7 @@ _MIGRATED_FLAG = "migrated_from_json"
 
 
 def _record_key(rec: dict[str, Any]) -> str:
-    """记录的稳定主键。_key 为 None 时给一个随机键（等价于「不去重」，与原实现一致）。"""
+    """记录的稳定主键。_key 为 None 时给一个随机键（等价于「不去重」，与早期版本一致）。"""
     k = rec.get("_key")
     if k:
         return json.dumps(k, ensure_ascii=False)
@@ -219,7 +219,7 @@ class CheckpointStore:
                 )
                 self._saved_mids.update(new_mids)
 
-            # 失败微博：按 mid 去重，保留最近 500 条（与原实现一致）
+            # 失败微博：按 mid 去重，保留最近 500 条（与早期版本一致）
             new_fail = [
                 f for f in failed_weibos[-500:] if str(f.get("mid") or "") not in self._saved_fail_keys
             ]

@@ -135,7 +135,7 @@ class InteractionAnalyzer:
                 cast("list[dict[str, Any]]", self.failed_weibos),
             )
         except Exception as e:
-            # 原实现这里是静默的 `except Exception: pass`：断点写失败时用户毫无感知，
+            # 早期版本这里是静默的 `except Exception: pass`：断点写失败时用户毫无感知，
             # 以为存了其实没存，下次「继续」会从更早的位置重扫甚至丢进度。
             # 改为显式提示（progress_cb 自身异常不再向外抛，避免掩盖原始错误）。
             with contextlib.suppress(Exception):
@@ -211,7 +211,7 @@ class InteractionAnalyzer:
 
         total = len(weibos_a) + len(weibos_b)
         # A→B 与 B→A 两段扫描逻辑完全一致，只是 owner/other 对调。
-        # 原实现是两段复制粘贴的代码（改一处容易漏另一处），提取为 _scan_batch。
+        # 早期版本是两段复制粘贴的代码（改一处容易漏另一处），提取为 _scan_batch。
         # done 跨两段累计，用于进度显示与每 20 条存一次断点。
         done = 0
         done = self._scan_batch(
@@ -474,7 +474,7 @@ class InteractionAnalyzer:
         # 翻页策略：只要返回非空就继续，直到空页或达到最大页数（不依赖"不足一页就停"，
         # 因为微博接口每页返回数量不固定，19 条后面可能还有第 2 页）
         #
-        # 相对原实现的两处优化：
+        # 相对早期版本的两处优化：
         #  1) 用上接口返回的 has_more：本页已到底就直接停，不再多空翻一页；
         #  2) 时间序（flow="1"）若已把接口声明的 total_number 条评论全部取回，
         #     说明两种排序看到的评论集合一致，此时跳过热度序（flow="0"）。

@@ -42,7 +42,7 @@
 - 点赞：目标在第 2 页 → 请求数 18 → 2
 - 目标不存在时仍翻完所有页，数据完整性不变
 
-> 附带修正：原 `fetch_reposts` / `fetch_attitudes` 签名里的 `start_ts` 参数
+> 附带修正：早期版本的 `fetch_reposts` / `fetch_attitudes` 签名里的 `start_ts` 参数
 > 从未被函数体使用（死参数），已移除并换成真正生效的 `target_uid`。
 
 ### 2. 评论不再无谓跑两遍

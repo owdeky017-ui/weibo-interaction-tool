@@ -278,7 +278,7 @@ class WeiboClient:
                     continue
                 results.append(wb)
             # 翻页间隔由 get_json 内的 _throttle() 统一控制，
-            # 此处不再重复 sleep（原实现在此又等了一次 min_interval，等于双重限速）
+            # 此处不再重复 sleep（早期版本在此又等了一次 min_interval，等于双重限速）
         return results
 
     def fetch_reposts(self, mid: str, max_pages: int = 30, target_uid: str | None = None) -> list[RepostItem]:
@@ -288,7 +288,7 @@ class WeiboClient:
         不再继续翻后续页——调用方只关心「目标用户是否转发过」，无需拉全量。
         返回的列表在命中后可能是截断的，请勿当作完整转发列表使用。
 
-        说明：原实现签名里的 start_ts 参数从未被函数体使用（死参数），
+        说明：早期版本签名里的 start_ts 参数从未被函数体使用（死参数），
         且微博创建时间必然 >= 扫描窗口起点，转发时间又必然 >= 微博创建时间，
         因此按时间剪枝在本场景下永不触发。真正省请求的是「命中即停」。
         """
@@ -471,7 +471,7 @@ class WeiboClient:
         点赞数动辄上千（最多 18 页 × 50），而调用方只关心目标用户是否点过赞，
         命中即停可省掉绝大部分翻页。返回列表在命中后可能被截断。
 
-        说明：原实现签名里的 start_ts 参数从未被函数体使用（死参数），
+        说明：早期版本签名里的 start_ts 参数从未被函数体使用（死参数），
         已移除；点赞列表同样不存在「早于扫描窗口」的条目可剪。
         """
         results: list[AttitudeItem] = []

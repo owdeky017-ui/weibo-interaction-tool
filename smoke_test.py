@@ -88,7 +88,7 @@ check(
 ws2 = wb["B→A"]
 check("B→A 数据行数 = 3（评论/评论回复/转发）", ws2.max_row == 4, f"max_row={ws2.max_row}")
 
-# 长文本未被截断（原实现截断到 120 字，但那是死代码，实际 Excel 用的是全文）
+# 长文本未被截断（早期版本截断到 120 字，但那是死代码，实际 Excel 用的是全文）
 long_cell = ws.cell(row=2, column=6).value
 check("微博内容保留全文（300 字，未被截断）", long_cell == LONG, f"len={len(long_cell or '')}")
 
@@ -190,7 +190,7 @@ def repost_handler(url: str, params: dict[str, Any]) -> dict[str, Any]:
 
 fc = FakeClient(repost_handler)
 out = fc.fetch_reposts("mid1", target_uid=TARGET)
-check("转发：命中即停 → 只请求 1 页（原实现会请求 30 页）", len(fc.calls) == 1, f"calls={len(fc.calls)}")
+check("转发：命中即停 → 只请求 1 页（早期版本会请求 30 页）", len(fc.calls) == 1, f"calls={len(fc.calls)}")
 check("转发：返回结果含目标用户", any(r["uid"] == TARGET for r in out))
 
 fc2 = FakeClient(repost_handler)
@@ -212,7 +212,9 @@ def att_handler(url: str, params: dict[str, Any]) -> dict[str, Any]:
 
 fc3 = FakeClient(att_handler)
 out3 = fc3.fetch_attitudes("mid2", target_uid=TARGET)
-check("点赞：第 2 页命中 → 只请求 2 页（原实现会请求 18 页）", len(fc3.calls) == 2, f"calls={len(fc3.calls)}")
+check(
+    "点赞：第 2 页命中 → 只请求 2 页（早期版本会请求 18 页）", len(fc3.calls) == 2, f"calls={len(fc3.calls)}"
+)
 check("点赞：返回结果含目标用户", any(r["uid"] == TARGET for r in out3))
 
 fc4 = FakeClient(att_handler)

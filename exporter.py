@@ -240,7 +240,7 @@ def _sort_block(records: list[InteractionRecord]) -> list[InteractionRecord]:
 def _table_row(r: InteractionRecord) -> list[str]:
     """按 COLUMNS 顺序取一行，全部转成字符串（None → 空串）。
 
-    说明：原实现对 微博内容 / 互动内容 做过 120 字截断，但那份截断后的数据
+    说明：早期版本对 微博内容 / 互动内容 做过 120 字截断，但那份截断后的数据
     只用于汇总表（只按「互动类型 × 方向」分组，用不到正文），Excel 和 CSV
     实际写出的是未截断的完整记录 —— 也就是说截断是死代码。这里保持与真实
     行为一致：表格与 HTML 一样保留全文。

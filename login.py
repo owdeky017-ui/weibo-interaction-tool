@@ -8,7 +8,7 @@
 备用方式：手动粘贴浏览器 Cookie 字符串。
 
 cookie 持久化默认用 **Windows DPAPI 加密**（见文件末尾「cookie 持久化」一节）：
-  原实现把含 SUB/SUBP 的登录态明文写在 data/cookies.json，
+  早期版本把含 SUB/SUBP 的登录态明文写在 data/cookies.json，
   任何能读到这个文件的人都能直接冒用账号。DPAPI 用当前 Windows 用户的
   主密钥加密，换机器 / 换用户都解不开，且不需要我们自己管密钥。
   旧的明文文件会被自动识别并就地升级为加密格式，不影响已有登录态。
