@@ -1,8 +1,8 @@
-# 微博互动查询器 · 优化改造工程
+# 微博互动查询器
 
 [English](./README.en.md) · **中文**
 
-一个从零做起的个人项目，目前处在「工程化收口」阶段。完整历程：
+一个从零做起、一路做到打包分发的**完整开发工程**。完整历程：
 
 | 阶段 | 时间 | 做了什么 |
 |---|---|---|
@@ -11,10 +11,12 @@
 | 分析 | 同一天 | `analyze.py`：表情符号 / 语气词 / 标点习惯 / 句式 / 时间分布统计 |
 | 转向 | 之后 | 从「一个人发了什么」扩展到「两个人之间发生过什么」—— 转发 / 评论 / 评论回复 / 点赞 |
 | 产品化 | 之后 | tkinter GUI + 扫码登录 + 一键导出，PyInstaller 打包成绿色免安装分发版 |
-| 逆向 | 本月 | 手上只剩打包产物 → 从 PYZ 读字节码，还原出 9 个模块的结构与 API 端点 |
-| 收口 | 本月 | 建独立改造工程：性能优化 / 登录态加密 / 三层验证 / 约束收敛成编译期常量（**本仓库**） |
+| 溯源 | 本月 | 源码散失，手上只剩打包产物 → 从 PYZ 读字节码，还原出 9 个模块的结构与 API 端点 |
+| 工程化 | 本月 | 重建成完整源码工程：性能 / 登录态加密 / 三层验证 / 约束收敛成编译期常量（**本仓库**） |
 
-本仓库是**最后一阶段**的产物：在早期那份 PyInstaller 分发包基础上做的优化改造，**原目录未被修改**（改造前后 MD5 已核对一致）。
+本仓库是这条线的**当前形态** —— 抓取、分析、界面、打包、验证都在里面，clone 下来
+就能继续开发，也能自己重新打包。早期那份 PyInstaller 分发包作为对照保留在本地磁盘上，
+**全程未被改动**（MD5 已核对一致）。
 
 产出物是一个 Windows 桌面工具：**扫码登录后，查询「当前登录账号」与另一个微博用户
 之间的全部互动记录**（转发 / 评论 / 评论回复 / 点赞），一键导出 Excel + CSV + HTML 日志。
@@ -29,10 +31,10 @@
 
 ---
 
-## 一、性能优化
+## 一、性能
 
 ### 1. 转发 / 点赞「命中即停」
-原实现会先翻完所有页（转发最多 30 页 × 20 条，点赞最多 18 页 × 50 条）再判断目标用户是否在其中。
+早期版本会先翻完所有页（转发最多 30 页 × 20 条，点赞最多 18 页 × 50 条）再判断目标用户是否在其中。
 现在边翻边判，**命中当页即返回**。实测（见 `smoke_test.py` 测试 2）：
 
 - 转发：目标在第 1 页 → 请求数 **30 → 1**
@@ -43,13 +45,13 @@
 > 从未被函数体使用（死参数），已移除并换成真正生效的 `target_uid`。
 
 ### 2. 评论不再无谓跑两遍
-原实现对「时间序（flow=1）+ 热度序（flow=0）」各翻最多 10 页。
+早期版本对「时间序（flow=1）+ 热度序（flow=0）」各翻最多 10 页。
 现在时间序若已把接口声明的 `total_number` 条评论全部取回，说明两种排序看到的集合一致，
 **直接跳过热度序**。只有在时间序被页数上限截断、或拿到条数少于 `total_number`、
 或接口未返回 `total_number` 时才补跑——不降低覆盖度。
 
 ### 3. 令牌桶限速（替代固定 `sleep`）
-原实现每次请求前 `sleep(min_interval)`，即使当前是并发场景也会串成一条直线。
+早期版本每次请求前 `sleep(min_interval)`，即使当前是并发场景也会串成一条直线。
 改为令牌桶：**平均 QPS 与原来完全一致**（仍是 1.2 / 0.6 / 0.25 秒一次），
 但允许额度内的短突发，把并发请求的等待重叠掉。实测平均 QPS 不突破配置速率。
 
@@ -68,7 +70,7 @@
 在**调用线程**统一上抛，保持外层「等待 180 秒后重试」的原语义。
 
 ### 5. 断点改用 SQLite 增量写入
-原实现把整份断点放在一个 JSON 文件里，每次保存都要
+早期版本把整份断点放在一个 JSON 文件里，每次保存都要
 「读全量 → 按 `_key` 在内存合并 → 写全量」，复杂度 O(记录数)；
 实测单个断点文件已到 665 KB。
 
@@ -83,14 +85,14 @@
 Excel 与 CSV 导出改用 `openpyxl` + 标准库 `csv`。
 打包体积减少约 19 MB（pandas 13 MB + numpy 6 MB），冷启动更快。
 
-> 附带发现：原实现里对正文的 120 字截断是**死代码**——截断后的数据只用于汇总表
+> 附带发现：早期版本里对正文的 120 字截断是**死代码**——截断后的数据只用于汇总表
 > （不涉及正文），Excel/CSV 实际写的是完整记录。现在保持一致，保留全文。
 
 ---
 
 ## 二、健壮性 / 可维护性 / 安全
 
-- **登录态改用 Windows DPAPI 加密**：原实现把含 `SUB`/`SUBP` 的登录态明文写在
+- **登录态改用 Windows DPAPI 加密**：早期版本把含 `SUB`/`SUBP` 的登录态明文写在
   `data/cookies.json`，任何能读到该文件的人都能直接冒用账号。现在用
   `CryptProtectData` 加密，附加熵绑定到本程序；密文绑定当前 Windows 用户与机器，
   换机器解不开。旧的明文文件会被自动识别并**就地升级**，用户无感。
@@ -153,7 +155,7 @@ python smoke_test.py
 | 7 | 约束分支：CLI 参数解析 + **真实构建 GUI 后读控件状态**（`importlib.reload` 换掉 `build_mode`） |
 | 8 | 登录态加密：加解密往返、逐字节篡改检测、明文文件就地升级、解密失败报错、DPAPI 不可用时退回明文 |
 
-另有 `pytest` 用例集（`tests/`，207 项），覆盖 client / analyzer / exporter /
+另有 `pytest` 用例集（`tests/`，210 项），覆盖 client / analyzer / exporter /
 checkpoint / login / fetchers / utils 的边界条件，CI 上跑覆盖率。
 
 ### 第 2 层 · 打包产物结构 —— `build.py` 内建自检
@@ -236,7 +238,7 @@ PyInstaller 会先删掉已存在的 `dist/<name>`，而那个目录里有上千
 只有带 `.pyd` 扩展的包才会以目录形式落在 `_internal/`。
 要确认是否齐全，得展开 PYZ 去数模块，不能看目录。
 
-顺带确认了 `pandas` / `numpy` 确实没被混进去 —— 这是去依赖改造的主要目的。
+顺带确认了 `pandas` / `numpy` 确实没被混进去 —— 这是移除这两个依赖的主要目的。
 
 ### 4. DPAPI 的完整性保护有边界
 
@@ -291,7 +293,7 @@ payload 区 274 字节全部被检测到。但 DPAPI blob 的**字节 4–19 不
 
 ## 七、项目展示站
 
-`site/` 是一个**静态**展示站，讲清架构、优化实测数据与验证方法，
+`site/` 是一个**静态**展示站，讲清架构、性能实测数据与验证方法，
 零外链资源（可离线双击打开）。用来看成果或当简历附件都行。
 
 ```powershell
@@ -332,7 +334,7 @@ python main.py --u2 <用户B> --days 30    # 命令行
 
 ```powershell
 python smoke_test.py    # 119 项断言：导出 / 剪枝 / 断点 / 限速 / 并发 / 约束分支 / 加密
-pytest                  # 207 项用例（tests/）
+pytest                  # 210 项用例（tests/）
 ruff check .            # lint
 ruff format --check .   # 格式
 mypy                    # 类型检查（检查目标写在 pyproject.toml 的 [tool.mypy] files 里）
@@ -374,7 +376,7 @@ weibo-interaction-opt/
 ├── README.md         # 本文件（中文）
 ├── README.en.md      # 英文版
 ├── LICENSE           # MIT
-├── PROVENANCE.md     # 产物溯源：原始分发版 → 基线源码 → 本仓库 → 构建产物
+├── PROVENANCE.md     # 产物溯源：早期分发版 → 还原出的基线 → 本仓库 → 构建产物
 ├── build.py          # 一键打包（写 A_MODE → PyInstaller → 组装目录 → 三层自检）
 ├── build.local.example.json  # 本机路径覆盖模板（复制为 build.local.json，后者不入库）
 ├── build_mode.py     # 编译期常量 A_MODE（由 build.py 写入，勿手改）
@@ -382,10 +384,10 @@ weibo-interaction-opt/
 ├── verify_package.py # 复查已打包目录内嵌的 build_mode 值
 ├── verify_assemble.py# 复用已编译产物，走一遍「组装 + 自检」链路
 ├── smoke_test.py     # 冒烟测试（119 项断言，单文件线性脚本）
-├── tests/            # pytest 用例集（207 项）
+├── tests/            # pytest 用例集（210 项）
 │   ├── conftest.py
 │   ├── _support.py
-│   └── test_*.py     # client / analyzer / exporter / checkpoint / login / fetchers / utils / build_modes
+│   └── test_*.py     # client / analyzer / exporter / checkpoint / login / fetchers / utils / build / build_modes
 ├── .github/workflows/ci.yml   # CI：ruff + mypy（Linux）· pytest + 覆盖率（Windows）
 ├── gui_app.py        # 图形界面入口
 ├── main.py           # 命令行入口

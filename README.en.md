@@ -1,8 +1,8 @@
-# Weibo Interaction Query Tool — Refactoring & Optimisation
+# Weibo Interaction Query Tool
 
 **English** · [中文](./README.md)
 
-A personal project built from zero, currently in its "engineering clean-up" phase.
+A **complete development project**, built from zero all the way to a packaged distribution.
 The full arc:
 
 | Stage | When | What happened |
@@ -12,11 +12,13 @@ The full arc:
 | Analysis | same day | `analyze.py`: emoji, filler words, punctuation habits, sentence patterns, posting-time distribution |
 | Pivot | later | From "what one person posted" to "what happened between two people" — reposts / comments / comment replies / likes |
 | Product | later | tkinter GUI + QR login + one-click export, packaged with PyInstaller as a portable distribution |
-| Reverse | this month | Only the packaged artefact remained → read the bytecode out of the PYZ and reconstructed 9 modules |
-| Clean-up | this month | Independent refactoring project: performance, credential encryption, three-layer verification, constraint funnelled into a compile-time constant (**this repo**) |
+| Provenance | this month | The source was lost and only the packaged artefact remained → read the bytecode out of the PYZ and reconstructed 9 modules |
+| Engineering | this month | Rebuilt into a complete source project: performance, credential encryption, three-layer verification, constraint funnelled into a compile-time constant (**this repo**) |
 
-This repository is the output of that **final stage**: a refactor on top of the earlier PyInstaller distribution. The original directory was never
-modified — MD5 checksums were verified before and after.
+This repository is the **current form** of that line — fetching, analysis, UI, packaging and
+verification all live here. Clone it to keep developing, or to rebuild the distribution yourself.
+The earlier PyInstaller distribution (`<早期分发包目录>`) is kept on disk as a
+reference and was **never modified** — MD5 checksums were verified.
 
 The deliverable is a Windows desktop tool: after scanning a QR code to log in, it queries
 **all interactions between the currently logged-in account and one other Weibo user**
@@ -34,11 +36,11 @@ fill in User B. That constraint is deliberate, not a shortcut; see §6.
 
 ---
 
-## 1. Performance work
+## 1. Performance
 
 ### 1.1 Early exit on match (reposts / likes)
 
-The original implementation paged through everything (up to 30 pages × 20 items for reposts,
+The early implementation paged through everything (up to 30 pages × 20 items for reposts,
 18 pages × 50 for likes) before checking whether the target user appeared anywhere in the
 result. It now checks as it pages and **returns on the page where the target is found**.
 
@@ -54,7 +56,7 @@ Measured (`smoke_test.py`, test 2):
 
 ### 1.2 Comments no longer scanned twice for no reason
 
-The original walked both the chronological (`flow=1`) and the popularity (`flow=0`) ordering,
+The early version walked both the chronological (`flow=1`) and the popularity (`flow=0`) ordering,
 up to 10 pages each. If the chronological pass already retrieved all `total_number` comments
 the API declared, both orderings must have seen the same set — so the popularity pass is
 **skipped**. It is only re-run when the chronological pass was truncated by the page cap,
@@ -63,7 +65,7 @@ Coverage is never reduced.
 
 ### 1.3 Token-bucket rate limiting (replacing a fixed `sleep`)
 
-The original slept `min_interval` before every request, serialising everything into a straight
+The early version slept `min_interval` before every request, serialising everything into a straight
 line even when concurrency was available. Now a token bucket: **the average QPS is identical**
 (1.2 / 0.6 / 0.25 s per request), but short bursts within the budget overlap the waiting of
 concurrent requests. Measured average QPS does not exceed the configured rate.
@@ -86,7 +88,7 @@ re-raised **on the calling thread**, preserving the original "wait 180 s then re
 
 ### 1.5 Checkpoints moved to incremental SQLite writes
 
-The original kept the whole checkpoint in one JSON file, so every save was
+The early version kept the whole checkpoint in one JSON file, so every save was
 "read everything → merge in memory by `_key` → write everything" — O(number of records).
 A single checkpoint file had already reached 665 KB.
 
@@ -103,7 +105,7 @@ Now SQLite (`checkpoint.py`):
 Excel and CSV export now use `openpyxl` plus the standard-library `csv` module.
 Distribution size dropped by roughly 19 MB (pandas 13 MB + numpy 6 MB), with faster cold start.
 
-> Related finding: the 120-character truncation of post text in the original was **dead code** —
+> Related finding: the 120-character truncation of post text in the early version was **dead code** —
 > the truncated copy only fed a summary sheet and never the body, while Excel/CSV wrote the full
 > record. Behaviour is now consistent: full text is kept.
 
@@ -111,7 +113,7 @@ Distribution size dropped by roughly 19 MB (pandas 13 MB + numpy 6 MB), with fas
 
 ## 2. Robustness, maintainability, security
 
-- **Credentials are now encrypted with Windows DPAPI.** The original stored the login state —
+- **Credentials are now encrypted with Windows DPAPI.** The early version stored the login state —
   including `SUB` / `SUBP` cookies — in plaintext at `data/cookies.json`. Anyone who could read
   that file could impersonate the account. It is now encrypted with `CryptProtectData`, with
   additional entropy bound to this application. The ciphertext is bound to the current Windows
@@ -183,7 +185,7 @@ python smoke_test.py
 | 7 | Constraint branches: CLI argument parsing plus **building the real GUI and reading widget state** (`importlib.reload` to swap `build_mode`) |
 | 8 | Credential encryption: round-trip, byte-level tamper detection, in-place plaintext upgrade, readable errors on decryption failure, plaintext fallback when DPAPI is unavailable |
 
-There is also a `pytest` suite (`tests/`, 207 cases) covering edge cases across client,
+There is also a `pytest` suite (`tests/`, 210 cases) covering edge cases across client,
 analyzer, exporter, checkpoint, login, fetchers and utils, run with coverage in CI.
 
 ### Layer 2 — Packaged artefact structure: built into `build.py`
@@ -322,7 +324,7 @@ privacy problem in itself. So this stays a **local desktop tool**.
 
 ## 7. Project showcase site
 
-`site/` is a **static** showcase explaining the architecture, the measured optimisation numbers,
+`site/` is a **static** showcase explaining the architecture, the measured performance numbers,
 and the verification method. It has zero external resources and can be opened offline by
 double-clicking.
 
@@ -365,7 +367,7 @@ Tests and static checks:
 ```powershell
 python smoke_test.py    # 119 assertions: export / pruning / checkpoints / rate limiting /
                         # concurrency / constraint branches / encryption
-pytest                  # 207 cases (tests/)
+pytest                  # 210 cases (tests/)
 ruff check .            # lint
 ruff format --check .   # formatting
 mypy                    # type check (targets listed under [tool.mypy] files in pyproject.toml)
@@ -412,7 +414,7 @@ weibo-interaction-opt/
 ├── README.md         # Chinese README
 ├── README.en.md      # this file
 ├── LICENSE           # MIT
-├── PROVENANCE.md     # artefact provenance: original distribution → baseline → this repo → build output
+├── PROVENANCE.md     # artefact provenance: earlier distribution → reconstructed baseline → this repo → build output
 ├── build.py          # one-shot build (write A_MODE → PyInstaller → assemble → three-layer check)
 ├── build.local.example.json  # template for local path overrides (copy to build.local.json, git-ignored)
 ├── build_mode.py     # compile-time constant A_MODE (written by build.py; do not edit by hand)
@@ -420,10 +422,10 @@ weibo-interaction-opt/
 ├── verify_package.py # re-reads the embedded build_mode value from a packaged directory
 ├── verify_assemble.py# reuses compiled artefacts to redo the assemble + self-check path
 ├── smoke_test.py     # smoke test (119 assertions, single-file linear script)
-├── tests/            # pytest suite (207 cases)
+├── tests/            # pytest suite (210 cases)
 │   ├── conftest.py
 │   ├── _support.py
-│   └── test_*.py     # client / analyzer / exporter / checkpoint / login / fetchers / utils / build_modes
+│   └── test_*.py     # client / analyzer / exporter / checkpoint / login / fetchers / utils / build / build_modes
 ├── .github/workflows/ci.yml   # CI: ruff + mypy (Linux) · pytest + coverage (Windows)
 ├── gui_app.py        # GUI entry point
 ├── main.py           # CLI entry point
