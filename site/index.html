@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>微博互动查询器 · 项目展示</title>
+<meta name="description" content="从 PyInstaller 打包产物反推源码，重构出一个可维护的桌面工具：性能优化实测、三层验证、产品约束收敛成编译期常量。">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7f9; --bg-card:#ffffff;
+    --line:#e3e6ea; --line-strong:#cfd5dd;
+    --fg:#1a1d21; --fg-soft:#5a626c; --fg-mute:#8b939e;
+    --accent:#2563a8; --accent-soft:#eaf1fa; --accent-line:#b9d1ea;
+    --good:#1a7f5a; --good-soft:#e7f5ef;
+    --warn:#9a6b00; --warn-soft:#fdf4e3;
+    --bad:#a83232; --bad-soft:#fceeee;
+    --mono:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+    font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.88em;background:var(--bg-soft);
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+  /* ---------- 顶栏 ---------- */
+  header.top{
+    position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  header.top .wrap{display:flex;align-items:center;gap:20px;height:56px}
+  .brand{font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+  .brand span{color:var(--fg-mute);font-weight:400;font-size:13px;margin-left:8px}
+  nav.top-nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+  nav.top-nav a{
+    color:var(--fg-soft);font-size:13.5px;padding:5px 10px;border-radius:6px;
+  }
+  nav.top-nav a:hover{background:var(--bg-soft);color:var(--fg);text-decoration:none}
+
+  /* ---------- 通用区块 ---------- */
+  section{padding:64px 0;border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:0}
+  .eyebrow{
+    font-size:12.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 10px
+  }
+  h2{font-size:26px;line-height:1.35;margin:0 0 8px;letter-spacing:-.015em;font-weight:650}
+  h3{font-size:17px;margin:0 0 6px;font-weight:640;letter-spacing:-.005em}
+  .lede{color:var(--fg-soft);margin:0 0 32px;max-width:74ch}
+  p{margin:0 0 14px}
+  .muted{color:var(--fg-mute)}
+  .small{font-size:13.5px}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:72px 0 60px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--bg-soft) 0%,var(--bg) 100%)}
+  .hero h1{font-size:40px;line-height:1.2;margin:0 0 14px;letter-spacing:-.025em;font-weight:700}
+  .hero .sub{font-size:18px;color:var(--fg-soft);max-width:70ch;margin:0 0 22px}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 34px}
+  .tag{
+    font-size:12.5px;font-family:var(--mono);color:var(--fg-soft);
+    background:var(--bg-card);border:1px solid var(--line-strong);
+    border-radius:999px;padding:3px 11px
+  }
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:14px}
+  .metric{
+    background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px
+  }
+  .metric .n{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+  .metric .n em{font-style:normal;font-size:15px;color:var(--fg-mute);font-weight:500;margin-left:2px}
+  .metric .k{font-size:13px;color:var(--fg-soft);margin-top:3px}
+  .metric .d{font-size:12px;color:var(--fg-mute);margin-top:5px;font-family:var(--mono)}
+
+  /* ---------- 卡片网格 ---------- */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .card{
+    background:var(--bg-card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px
+  }
+  .card h3{display:flex;align-items:center;gap:8px}
+  .card p:last-child{margin-bottom:0}
+  .card .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:6px;background:var(--accent-soft);
+    color:var(--accent);font-size:12.5px;font-weight:700;font-family:var(--mono);flex:none
+  }
+  .ico{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:7px;background:var(--accent-soft);
+    color:var(--accent);font-size:14px;flex:none
+  }
+
+  /* ---------- 时间线 ---------- */
+  .tl{margin:0;padding:0;list-style:none;position:relative}
+  .tl::before{
+    content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;
+    background:var(--line);border-radius:1px
+  }
+  .tl>li{position:relative;padding:0 0 24px 36px}
+  .tl>li:last-child{padding-bottom:0}
+  .tl>li::before{
+    content:"";position:absolute;left:3px;top:8px;width:14px;height:14px;
+    border-radius:50%;background:var(--bg);border:2px solid var(--line-strong);z-index:1
+  }
+  .tl>li.key::before{border-color:var(--accent);background:var(--accent)}
+  .tl .when{
+    font-family:var(--mono);font-size:12px;color:var(--fg-mute);
+    letter-spacing:.02em;margin:0 0 3px
+  }
+  .tl .what{font-weight:640;margin:0 0 4px;font-size:15.5px}
+  .tl .why{font-size:13.5px;color:var(--fg-soft);margin:0 0 4px}
+  .tl .why:last-child{margin-bottom:0}
+  .tl .why b{color:var(--fg)}
+
+  /* ---------- 表格 ---------- */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);
+    background:var(--bg-card)}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:620px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--bg-soft);font-weight:640;font-size:13px;color:var(--fg-soft);
+    white-space:nowrap;letter-spacing:.01em}
+  tbody tr:last-child td{border-bottom:0}
+  td.mono,th.mono{font-family:var(--mono);font-size:13px}
+  .win{color:var(--good);font-weight:600;white-space:nowrap}
+  .lose{color:var(--fg-mute)}
+
+  /* ---------- 代码 / 终端 ---------- */
+  pre{
+    background:#1d2126;color:#dfe5ec;border-radius:var(--radius);padding:16px 18px;
+    overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:0 0 14px
+  }
+  pre .c{color:#7d8894}
+  pre .g{color:#5fc98a}
+  pre .y{color:#e3c05c}
+  pre .r{color:#e08b8b}
+  pre .b{color:#79b8f3}
+
+  /* ---------- 徽标 ---------- */
+  .pill{
+    display:inline-block;font-size:12px;font-family:var(--mono);padding:1.5px 8px;
+    border-radius:999px;border:1px solid;white-space:nowrap
+  }
+  .p-ok{color:var(--good);background:var(--good-soft);border-color:#b6ddcb}
+  .p-warn{color:var(--warn);background:var(--warn-soft);border-color:#eddcae}
+  .p-bad{color:var(--bad);background:var(--bad-soft);border-color:#efc4c4}
+  .p-info{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line)}
+
+  /* ---------- 提示块 ---------- */
+  .note{
+    border-left:3px solid var(--accent-line);background:var(--accent-soft);
+    border-radius:0 var(--radius) var(--radius) 0;padding:13px 18px;margin:0 0 16px
+  }
+  .note.warn{border-left-color:#eddcae;background:var(--warn-soft)}
+  .note.bad{border-left-color:#efc4c4;background:var(--bad-soft)}
+  .note p:last-child{margin-bottom:0}
+  .note .t{font-weight:640;margin-bottom:3px}
+
+  /* ---------- 列表 ---------- */
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{position:relative;padding-left:20px;margin-bottom:8px;color:var(--fg-soft)}
+  ul.clean li::before{
+    content:"";position:absolute;left:4px;top:.68em;width:5px;height:5px;
+    border-radius:50%;background:var(--accent-line)
+  }
+  ul.clean li b{color:var(--fg);font-weight:620}
+
+  /* ---------- 样例报告 iframe ---------- */
+  .frame-shell{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    background:var(--bg-card)}
+  .frame-bar{
+    display:flex;align-items:center;gap:10px;padding:9px 14px;
+    background:var(--bg-soft);border-bottom:1px solid var(--line);font-size:13px;color:var(--fg-soft)
+  }
+  .dots{display:flex;gap:5px}
+  .dots i{width:10px;height:10px;border-radius:50%;background:var(--line-strong);display:block}
+  .frame-bar .url{
+    font-family:var(--mono);font-size:12.5px;color:var(--fg-mute);
+    background:var(--bg-card);border:1px solid var(--line);border-radius:5px;
+    padding:2px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+  }
+  iframe{display:block;width:100%;height:660px;border:0;background:#fff}
+
+  /* ---------- 架构图 ---------- */
+  .arch{background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 16px;overflow-x:auto}
+  .arch svg{display:block;margin:0 auto;max-width:100%;height:auto}
+
+  footer{padding:40px 0 56px;color:var(--fg-mute);font-size:13.5px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+
+  @media (max-width:640px){
+    .hero h1{font-size:30px}
+    .hero .sub{font-size:16px}
+    section{padding:48px 0}
+    nav.top-nav{display:none}
+    iframe{height:480px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">微博互动查询器<span>WeiboInteractionQuery</span></div>
+    <nav class="top-nav">
+      <a href="#start">从0到1</a>
+      <a href="#what">功能</a>
+      <a href="#arch">架构</a>
+      <a href="#perf">性能</a>
+      <a href="#constraint">约束落地</a>
+      <a href="#verify">验证</a>
+      <a href="#pitfalls">踩坑</a>
+      <a href="#sample">样例</a>
+      <a href="#compliance">合规</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<div class="hero">
+  <div class="wrap">
+    <p class="eyebrow">个人项目 · 从 0 到 1 · 逆向重构 · 性能优化</p>
+    <h1>从一行 urllib 请求，走到三层验证的打包工程</h1>
+    <p class="sub">
+      起点不是「接到一个需求」，而是 2026-08-15 一个很具体的念头：想量化一个微博博主的说话习惯。
+      手写抓取脚本 → 浏览器自动化 → 文本分析 → 桌面工具 → 逆向还原 → 性能改造，
+      每一版都是因为上一版真的不够用才换的。
+    </p>
+    <div class="tags">
+      <span class="tag">Python 3.13</span>
+      <span class="tag">tkinter</span>
+      <span class="tag">requests</span>
+      <span class="tag">openpyxl</span>
+      <span class="tag">SQLite</span>
+      <span class="tag">threading</span>
+      <span class="tag">PyInstaller</span>
+      <span class="tag">Windows DPAPI</span>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="n">-97<em>%</em></div>
+        <div class="k">转发接口请求数</div>
+        <div class="d">30 页 → 1 页</div>
+      </div>
+      <div class="metric">
+        <div class="n">3.0<em>×</em></div>
+        <div class="k">单条微博扫描提速</div>
+        <div class="d">900ms → 303ms</div>
+      </div>
+      <div class="metric">
+        <div class="n">-52<em>%</em></div>
+        <div class="k">打包体积</div>
+        <div class="d">_internal 82MB → 40MB</div>
+      </div>
+      <div class="metric">
+        <div class="n">119</div>
+        <div class="k">自动化断言</div>
+        <div class="d">8 组 · 全通过</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 起点 · 从 0 到 1 ===================== -->
+<section id="start">
+  <div class="wrap">
+    <p class="eyebrow">从 0 到 1</p>
+    <h2>八步走到今天，每一步都是因为上一版不够用</h2>
+    <p class="lede">
+      没有现成工具，没有教程，也没有一开始就设计好的架构。
+      下面八步是实际发生的顺序 —— 包括「同一个问题连换三遍方案」的部分。
+    </p>
+
+    <ol class="tl">
+      <li class="key">
+        <p class="when">2026-08-15 · 第 0 天</p>
+        <p class="what">urllib 直连移动端接口</p>
+        <p class="why">
+          想统计一个微博博主的说话习惯，找不到现成工具，于是自己写。
+          用 <code>urllib.request</code> 加 <code>http.cookiejar</code> 伪装成移动端浏览器，
+          请求 <code>m.weibo.cn</code> 的分页接口。
+          <b>问题</b>：首页能拿到，翻页不稳，cookie 维护很别扭。
+        </p>
+      </li>
+
+      <li>
+        <p class="when">2026-08-15 · 同一天</p>
+        <p class="what">换 Selenium 驱动系统 Edge</p>
+        <p class="why">
+          接口翻页拿不全，那就让浏览器自己去点「加载更多」——
+          用 Selenium 启动系统已装的 Edge，顺带复用真实登录态。
+          <b>问题</b>：等待时机只能靠 <code>sleep</code> 猜，日志里刷满页面自身的 JS 报错。
+        </p>
+      </li>
+
+      <li class="key">
+        <p class="when">2026-08-15 · 同一天</p>
+        <p class="what">再换 Playwright：把翻页逻辑注入页面上下文</p>
+        <p class="why">
+          关键转变 —— 不再从 Python 侧猜页面状态，而是用 <code>page.evaluate</code>
+          把翻页逻辑<b>注入页面里执行</b>，让 JS 自己循环请求、自己去重、自己判终止，
+          最后把累积结果一次性交回 Python。
+          <b>结果</b>：稳定拿到 1461 条微博。
+        </p>
+      </li>
+
+      <li>
+        <p class="when">2026-08-15 · 同一天</p>
+        <p class="what">analyze.py：从「抓到」到「看懂」</p>
+        <p class="why">
+          清洗话题标签 / @ / URL 之后，统计表情符号、语气词、标点习惯、自称、句长分布、
+          发博时间分布，再提取代表性台词。
+          <b>这一天的收获不是脚本，而是意识到：抓取只是手段，真问题是「怎么量化一个人的表达习惯」。</b>
+        </p>
+      </li>
+
+      <li>
+        <p class="when">之后</p>
+        <p class="what">从「一个人」扩展到「两个人」</p>
+        <p class="why">
+          需求变了：不再只看一个人发了什么，而是看<b>两个人之间发生过什么</b> ——
+          转发、评论、评论回复、点赞。这一步把项目从「一次性爬虫脚本」推成「有状态的应用」：
+          必须处理增量扫描、断点续传、跨次去重、请求限速、风控退避。
+        </p>
+      </li>
+
+      <li>
+        <p class="when">之后</p>
+        <p class="what">做成桌面工具，而不是命令行脚本</p>
+        <p class="why">
+          要给不用命令行的人用，就得有界面。改成 tkinter GUI +
+          扫码登录 + 一键导出 Excel / CSV / HTML，
+          再用 PyInstaller 打包成绿色免安装的分发版。
+        </p>
+      </li>
+
+      <li class="key">
+        <p class="when">本月</p>
+        <p class="what">手上只剩打包产物，于是逆向还原</p>
+        <p class="why">
+          要改进它，先得知道它到底怎么写的。Python 3.13 没有可用的反编译器
+          （uncompyle6 止于 3.8、decompyle3 止于 3.9），所以只能从 PYZ 里读字节码、
+          常量表和 docstring，手工重建逻辑。
+        </p>
+      </li>
+
+      <li>
+        <p class="when">本月</p>
+        <p class="what">建独立改造工程，做工程化收口</p>
+        <p class="why">
+          随后找到原始源码，据此新建独立工程：六项性能改造、登录态加密、
+          三层打包验证、约束收敛成编译期常量，以及一整套自动化测试。
+          <b>原分发目录全程未改动</b>（exe 的 MD5 前后一致）。
+        </p>
+      </li>
+    </ol>
+
+    <h3 style="margin:34px 0 10px">第 7 步展开：从 PYZ 里把结构捞出来</h3>
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="num">1</span> 解析 PYZ 归档</h3>
+        <p class="small">
+          onedir 的 exe 内嵌一个 PYZ 归档。定位 <code>b'PYZ\x00'</code> 魔数，读
+          <code>offset+8</code> 的 int32 得到 TOC 偏移，<code>marshal.loads</code> 解析出条目表，
+          再对每条 <code>zlib.decompress</code> + <code>marshal.loads</code>，就拿到了 code 对象。
+        </p>
+        <p class="small muted">
+          这一层后来还派上了别的用场：<code>build.py</code> 的自检就是靠同一套方法
+          <b>直接读 exe 内嵌 PYZ 里 <code>build_mode</code> 的编译常量</b>，
+          来确认 A_MODE 真的写进了编译产物。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">2</span> 还原出 9 个模块</h3>
+        <p class="small">
+          最终确认的结构：<code>gui_app</code>（GUI）/ <code>main</code>（CLI）/
+          <code>analyzer</code>（编排·去重·断点）/ <code>client</code>（HTTP·限速·风控）/
+          <code>fetchers</code>（解析）/ <code>exporter</code>（导出）/
+          <code>login</code>（扫码）/ <code>config</code> / <code>utils</code>，
+          以及各模块的函数签名、常量值与用到的微博 API 端点。
+        </p>
+      </div>
+    </div>
+
+    <div class="note">
+      <p class="t">顺带发现的两个「看起来是 bug、其实不是」的点</p>
+      <p class="small">
+        ① <code>fetch_reposts</code> / <code>fetch_attitudes</code> 的 <code>start_ts</code>
+        参数确实是死参数（函数体从未使用），但<b>按时间剪枝在这个场景永不触发</b> ——
+        微博的创建时间必然 ≥ 扫描窗口起点，互动时间又必然 ≥ 微博创建时间。
+        真正省请求的是「命中即停」。<br>
+        ② exporter 里对正文的 120 字截断是死代码：截断后的数据只用于汇总表，
+        Excel/CSV 实际写的是完整记录。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 功能 ===================== -->
+<section id="what">
+  <div class="wrap">
+    <p class="eyebrow">功能</p>
+    <h2>它做什么</h2>
+    <p class="lede">
+      提取两个微博用户之间的<b>双向</b>互动记录，导出成可检索的单文件 HTML 日志
+      （可选 Excel / CSV）。所有互动类型都支持 A→B 与 B→A 两个方向。
+    </p>
+
+    <div class="grid g4">
+      <div class="card">
+        <h3><span class="ico">↻</span>转发</h3>
+        <p class="small muted">谁转发了谁的哪条微博，含转发语。</p>
+      </div>
+      <div class="card">
+        <h3><span class="ico">💬</span>评论</h3>
+        <p class="small muted">对微博的评论，含折叠评论的「热度 + 时间」双排序覆盖。</p>
+      </div>
+      <div class="card">
+        <h3><span class="ico">↩</span>评论回复</h3>
+        <p class="small muted">评论楼中楼的连续回复，标注「回复的是哪条评论」。</p>
+      </div>
+      <div class="card">
+        <h3><span class="ico">♥</span>点赞</h3>
+        <p class="small muted">微博网页版无公开点赞接口，改用移动端接口尽力尝试。</p>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card">
+        <h3>增量刷新</h3>
+        <p class="small muted">
+          同一对用户再次抓取时，只扫新增微博 + 重扫最近 3 天的旧微博
+          （旧微博也可能被对方新评论 / 新点赞）。
+        </p>
+      </div>
+      <div class="card">
+        <h3>断点续传</h3>
+        <p class="small muted">
+          中断、暂停、手动结束后都可从断点继续，不会重复扫描；
+          抓取中途登录失效会自动弹新二维码。
+        </p>
+      </div>
+      <div class="card">
+        <h3>风控自适应</h3>
+        <p class="small muted">
+          触发风控自动等待 180 秒后继续；点赞接口不可用时自动暂停，
+          每 50 条微博重试一次。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 架构 ===================== -->
+<section id="arch">
+  <div class="wrap">
+    <p class="eyebrow">架构</p>
+    <h2>模块与数据流</h2>
+    <p class="lede">
+      两条入口（GUI / CLI）共用同一套核心；<code>analyzer</code> 是唯一的编排层，
+      网络、存储、导出都通过它串联，因此性能优化可以集中在一处做。
+    </p>
+
+    <div class="arch">
+      <svg viewBox="0 0 1000 400" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="模块与数据流架构图">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8b939e"/>
+          </marker>
+        </defs>
+
+        <!-- 入口层 -->
+        <text x="40" y="30" font-family="monospace" font-size="12" fill="#8b939e">入口层</text>
+        <rect x="40" y="42" width="180" height="54" rx="8" fill="#eaf1fa" stroke="#b9d1ea"/>
+        <text x="130" y="66" text-anchor="middle" font-size="14" font-weight="600" fill="#1a1d21">gui_app.py</text>
+        <text x="130" y="84" text-anchor="middle" font-size="11.5" fill="#5a626c">tkinter 图形界面</text>
+
+        <rect x="240" y="42" width="180" height="54" rx="8" fill="#eaf1fa" stroke="#b9d1ea"/>
+        <text x="330" y="66" text-anchor="middle" font-size="14" font-weight="600" fill="#1a1d21">main.py</text>
+        <text x="330" y="84" text-anchor="middle" font-size="11.5" fill="#5a626c">命令行入口</text>
+
+        <!-- 核心层 -->
+        <text x="40" y="146" font-family="monospace" font-size="12" fill="#8b939e">核心</text>
+        <rect x="40" y="158" width="380" height="62" rx="8" fill="#ffffff" stroke="#cfd5dd"/>
+        <text x="230" y="183" text-anchor="middle" font-size="14" font-weight="600" fill="#1a1d21">analyzer.py</text>
+        <text x="230" y="203" text-anchor="middle" font-size="11.5" fill="#5a626c">编排 · 去重 · 并发调度 · 断点</text>
+
+        <!-- 支撑 -->
+        <rect x="40" y="250" width="180" height="54" rx="8" fill="#f6f7f9" stroke="#cfd5dd"/>
+        <text x="130" y="274" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d21">client.py</text>
+        <text x="130" y="292" text-anchor="middle" font-size="11" fill="#5a626c">令牌桶 · 线程内 Session</text>
+
+        <rect x="240" y="250" width="180" height="54" rx="8" fill="#f6f7f9" stroke="#cfd5dd"/>
+        <text x="330" y="274" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d21">checkpoint.py</text>
+        <text x="330" y="292" text-anchor="middle" font-size="11" fill="#5a626c">SQLite 增量断点</text>
+
+        <rect x="440" y="250" width="180" height="54" rx="8" fill="#f6f7f9" stroke="#cfd5dd"/>
+        <text x="530" y="274" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d21">login.py</text>
+        <text x="530" y="292" text-anchor="middle" font-size="11" fill="#5a626c">扫码 · DPAPI 加密存储</text>
+
+        <rect x="640" y="250" width="180" height="54" rx="8" fill="#f6f7f9" stroke="#cfd5dd"/>
+        <text x="730" y="274" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d21">exporter.py</text>
+        <text x="730" y="292" text-anchor="middle" font-size="11" fill="#5a626c">HTML · Excel · CSV</text>
+
+        <!-- 外部 -->
+        <rect x="640" y="42" width="320" height="178" rx="8" fill="#ffffff" stroke="#cfd5dd" stroke-dasharray="5 4"/>
+        <text x="800" y="70" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d21">微博 API</text>
+        <text x="800" y="92" text-anchor="middle" font-size="11" font-family="monospace" fill="#5a626c">/ajax/statuses/mymblog</text>
+        <text x="800" y="110" text-anchor="middle" font-size="11" font-family="monospace" fill="#5a626c">/ajax/statuses/repostTimeline</text>
+        <text x="800" y="128" text-anchor="middle" font-size="11" font-family="monospace" fill="#5a626c">/ajax/statuses/buildComments</text>
+        <text x="800" y="146" text-anchor="middle" font-size="11" font-family="monospace" fill="#5a626c">/ajax/approval/list</text>
+        <text x="800" y="164" text-anchor="middle" font-size="11" font-family="monospace" fill="#5a626c">m.weibo.cn/api/attitudes/show</text>
+        <text x="800" y="196" text-anchor="middle" font-size="11" fill="#8b939e">限速 + 风控重试</text>
+
+        <!-- 连线 -->
+        <line x1="130" y1="96" x2="130" y2="158" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="330" y1="96" x2="330" y2="158" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="130" y1="220" x2="130" y2="250" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="330" y1="220" x2="330" y2="250" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="420" y1="196" x2="520" y2="250" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="420" y1="200" x2="720" y2="250" stroke="#8b939e" marker-end="url(#ar)"/>
+        <line x1="220" y1="277" x2="640" y2="90" stroke="#8b939e" marker-end="url(#ar)"/>
+
+        <!-- 底部产物 -->
+        <rect x="40" y="340" width="920" height="42" rx="8" fill="#e7f5ef" stroke="#b6ddcb"/>
+        <text x="500" y="366" text-anchor="middle" font-size="13" fill="#1a1d21">
+          产物：单文件 HTML 日志（搜索 / 类型筛选 / 日期筛选 / 月度趋势）+ Excel 汇总 + CSV
+        </text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 性能 ===================== -->
+<section id="perf">
+  <div class="wrap">
+    <p class="eyebrow">性能优化</p>
+    <h2>六项改动，每一项都有实测数字</h2>
+    <p class="lede">
+      原则是<b>不降低数据完整性</b>：所有剪枝都只在「能证明不影响覆盖度」时才生效，
+      不确定时一律退回原行为。
+    </p>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34px">#</th>
+            <th>优化</th>
+            <th>原实现</th>
+            <th>改后</th>
+            <th>实测</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">1</td>
+            <td><b>转发 / 点赞「命中即停」</b></td>
+            <td class="lose">先翻完所有页再判断目标是否在其中（转发 30 页 × 20，点赞 18 页 × 50）</td>
+            <td>边翻边判，命中当页即返回</td>
+            <td class="mono"><span class="win">30 → 1 页</span><br><span class="win">18 → 2 页</span></td>
+          </tr>
+          <tr>
+            <td class="mono">2</td>
+            <td><b>评论双排序剪枝</b></td>
+            <td class="lose">时间序 + 热度序各翻最多 10 页</td>
+            <td>时间序已取回接口声明的 <code>total_number</code> 条时，跳过热度序</td>
+            <td class="mono"><span class="win">评论请求减半</span></td>
+          </tr>
+          <tr>
+            <td class="mono">3</td>
+            <td><b>令牌桶限速</b></td>
+            <td class="lose">每次请求前固定 <code>sleep(min_interval)</code></td>
+            <td>平均 QPS 不变，允许额度内短突发，把并发等待重叠掉</td>
+            <td class="mono">平均速率<br>与配置一致</td>
+          </tr>
+          <tr>
+            <td class="mono">4</td>
+            <td><b>扫描并发化</b></td>
+            <td class="lose">同一条微博的四组请求（转发/评论/点赞/待审核）严格串行</td>
+            <td>线程池并发发起；worker 只做网络 I/O，结果回主线程处理</td>
+            <td class="mono"><span class="win">900ms → 303ms</span><br>3 个任务</td>
+          </tr>
+          <tr>
+            <td class="mono">5</td>
+            <td><b>断点改 SQLite</b></td>
+            <td class="lose">每次保存「读全量 → 内存合并 → 写全量」，复杂度 O(记录数)</td>
+            <td>主键去重，只写未落库的新增部分，复杂度 O(新增)</td>
+            <td class="mono"><span class="win">O(n) → O(新增)</span><br>不再需要原子替换</td>
+          </tr>
+          <tr>
+            <td class="mono">6</td>
+            <td><b>移除 pandas / numpy</b></td>
+            <td class="lose">仅用 DataFrame 做导出，却拖进 19MB 依赖</td>
+            <td>改用 openpyxl + 标准库 <code>csv</code></td>
+            <td class="mono"><span class="win">82MB → 40MB</span><br>exe 10.5 → 5.4MB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card">
+        <h3>并发度怎么定</h3>
+        <p class="small muted">
+          并发只影响「同一时刻几个请求在途」，不改变请求总数与平均 QPS ——
+          所以不会让风控更容易触发。
+        </p>
+        <div class="tw" style="margin-top:10px">
+          <table style="min-width:0">
+            <thead><tr><th>速度</th><th>请求间隔</th><th>并发线程</th></tr></thead>
+            <tbody>
+              <tr><td>慢（最稳）</td><td class="mono">1.2 s</td><td class="mono">1（严格串行）</td></tr>
+              <tr><td>中</td><td class="mono">0.6 s</td><td class="mono">2</td></tr>
+              <tr><td>快（易风控）</td><td class="mono">0.25 s</td><td class="mono">3</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>并发带来的两个必须处理的细节</h3>
+        <ul class="clean small">
+          <li><b>Session 不是线程安全的</b> —— <code>requests.Session</code> 的 cookie jar
+            有共享状态。用 <code>threading.local</code> 给每个 worker 一份独立 Session
+            （慢速单线程时仍复用同一个，行为与原来完全一致）。</li>
+          <li><b>风控异常必须由调用线程上抛</b> —— 否则外层「等 180 秒后重试」的语义会丢。
+            worker 里捕获 <code>RiskControlError</code> 收集起来，回到调用线程统一抛。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 约束落地 ===================== -->
+<section id="constraint">
+  <div class="wrap">
+    <p class="eyebrow">约束落地</p>
+    <h2>产品约束做成编译期常量，不是散落各处的 if</h2>
+    <p class="lede">
+      「用户A 只能是当前扫码登录的账号」是产品的硬约束。它没有散落在业务代码里，
+      而是收敛成一个编译期常量：<code>build_mode.A_MODE</code>，
+      打包脚本在编译前把它写进 <code>build_mode.py</code>。
+      约束因此只有一个判定点，改需求时不会漏掉某个分支。
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="pill p-info">锁定</span> 用户A = 登录账号</h3>
+        <p class="small muted">
+          输入框只读、登录后自动填入，只需要填用户B。
+          查「你和某个人」的互动时更省事，也从机制上杜绝了填错自己。
+        </p>
+      </div>
+      <div class="card">
+        <h3><span class="pill p-info">可测试性</span> 常量带来的另一个好处</h3>
+        <p class="small muted">
+          测试可以在同一进程里替换 <code>build_mode</code> 再重新导入模块，
+          让这个常量的各个取值都被跑到 —— 而且是<b>真实构建 GUI 后读控件状态</b>，
+          不是断言一个常量。
+        </p>
+      </div>
+    </div>
+
+    <div class="tw" style="margin-top:16px">
+      <table>
+        <thead>
+          <tr><th>分支点</th><th>本版行为</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>GUI 用户区标题</td><td class="mono">2. 选择要对比的用户</td></tr>
+          <tr><td>用户A 输入框</td><td>只读，登录后自动填入</td></tr>
+          <tr><td>配置记忆</td><td>只记忆 B（A 永远取登录账号）</td></tr>
+          <tr><td>开始前校验</td><td>只校验 B，且 B 不能是登录账号本人</td></tr>
+          <tr><td>命令行 <code>--u1</code></td><td>隐藏，传了会明确报错</td></tr>
+          <tr><td>交互式引导</td><td>只询问 B</td></tr>
+          <tr><td>登录账号 uid</td><td>就是用户A 本人，必然非空</td></tr>
+          <tr><td>登录失效重登</td><td>校验账号一致，不一致则中止</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note" style="margin-top:18px">
+      <p class="t">最后一项不是洁癖，是数据正确性问题</p>
+      <p class="small">
+        「用户A = 登录账号」这个约束下，如果重新扫码时换了账号，A 就变了 ——
+        断点里的历史记录和 <code>scanned_mids</code> 都不再对应新的用户对，
+        继续跑会把两个人的记录混在一起。所以必须中止而不是续传。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 验证 ===================== -->
+<section id="verify">
+  <div class="wrap">
+    <p class="eyebrow">工程化</p>
+    <h2>三层验证：每一层回答一个不同的问题</h2>
+    <p class="lede">
+      打包类的项目最容易出的错是「以为打了，其实打的是上次的产物」。
+      所以验证按「源码行为 / 产物结构 / 冻结运行时」拆成三层。
+    </p>
+
+    <div class="grid g3">
+      <div class="card">
+        <h3><span class="num">1</span> 源码行为</h3>
+        <p class="small muted"><code>smoke_test.py</code> · 119 项断言</p>
+        <ul class="clean small" style="margin-top:10px">
+          <li>导出格式：sheet 顺序、表头、长文本不截断、空记录分支</li>
+          <li>剪枝正确性：命中页数、目标不存在时不提前退出</li>
+          <li>断点：增量追加、主键去重、旧 JSON 迁移、文件损坏容错</li>
+          <li>令牌桶：突发额度、平均速率不超标</li>
+          <li>并发：耗时、异常语义</li>
+          <li>模式分支：<b>真实构建 GUI 后读控件状态</b>，而不是断言常量</li>
+          <li>登录态加密：往返、篡改检测、明文自动升级</li>
+        </ul>
+        <p class="small muted" style="margin-top:10px">
+          另有 <code>pytest</code> 用例集（<code>tests/</code>，207 项）覆盖
+          client / analyzer / exporter / checkpoint / login / fetchers / utils
+          的边界条件，CI 上跑覆盖率。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">2</span> 产物结构</h3>
+        <p class="small muted"><code>build.py</code> 内建自检</p>
+        <ul class="clean small" style="margin-top:10px">
+          <li>目录结构完整</li>
+          <li><b>直接读 exe 内嵌 PYZ 里 <code>build_mode</code> 的编译常量</b>，
+            确认等于目标模式</li>
+          <li>产出 exe 的 sha256 与预期一致</li>
+          <li><code>data/</code> 不含任何运行时数据（不会把登录态打进分发包）</li>
+        </ul>
+        <p class="small muted" style="margin-top:10px">
+          第二项比「比对时间戳」强得多 —— 前者只能推断，这个是直接读编译产物。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">3</span> 冻结运行时</h3>
+        <p class="small muted"><code>build.py --probe</code></p>
+        <p class="small" style="margin-top:8px">
+          PyInstaller 只能证明「文件在包里」，不能证明「运行时可用」。
+          所以用<b>与主程序相同的打包选项</b>把自检脚本编成控制台 exe 并真跑一次。
+        </p>
+        <ul class="clean small" style="margin-top:10px">
+          <li>全部依赖导入</li>
+          <li>HTTPS + CA 证书链（<code>cacert.pem</code> 是否被收进去）</li>
+          <li>SQLite 断点读写</li>
+          <li>Excel / CSV / HTML 导出</li>
+          <li>tkinter + PIL.ImageTk（二维码显示路径）</li>
+          <li>frozen 下的路径解析</li>
+        </ul>
+      </div>
+    </div>
+
+    <pre style="margin-top:20px"><span class="c"># 第 2 层：读 exe 内嵌 PYZ 里的编译常量</span>
+$ python verify_package.py
+  <span class="g">[OK]</span> 扫码A版：exe 内 build_mode = <span class="y">'self'</span>（期望 'self'）
+
+<span class="c"># 第 3 层：冻结环境真跑</span>
+$ python build.py --probe
+  <span class="g">[OK  ]</span> 导入全部依赖模块
+        —— requests 2.34.2 / openpyxl 3.1.5 / sqlite3 3.50.4 / tk 8.6 / PIL 12.3.0
+  <span class="g">[OK  ]</span> HTTPS 请求 + CA 证书链
+        —— HTTP 302，419 字节（SSL 校验通过）
+  <span class="g">[OK  ]</span> SQLite 断点读写
+  <span class="g">[OK  ]</span> Excel / CSV / HTML 导出
+  <span class="g">[OK  ]</span> tkinter + PIL.ImageTk
+  <span class="g">[OK  ]</span> frozen 路径解析（BASE_DIR = exe 目录）
+  6 通过 / 0 失败</pre>
+
+    <div class="note" style="margin-top:18px">
+      <p class="t">这三层之外，还有一条持续在跑的线</p>
+      <p class="small">
+        CI 分两个 job：<code>ruff check</code> + <code>ruff format --check</code> +
+        <code>mypy</code> 跑在 Linux；<code>pytest</code>（带覆盖率）与
+        <code>smoke_test.py</code> 跑在 Windows，Python 3.12 / 3.13 双版本。
+        上面这三层依赖本机的 PyInstaller，不适合放进 CI，所以保持手动跑 ——
+        <b>能自动化的自动化，不能的就明确说清楚它是手动的</b>。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 踩过的坑 ===================== -->
+<section id="pitfalls">
+  <div class="wrap">
+    <p class="eyebrow">踩过的坑</p>
+    <h2>六件「写的时候没想到、跑起来才炸」的事</h2>
+    <p class="lede">
+      功能列表谁都能列，真正说明「有没有亲手跑过」的是这些细节。
+      每一条都改过代码，不是事后总结。
+    </p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="num">1</span> 打包脚本第二次运行必然失败</h3>
+        <p class="small muted">
+          PyInstaller 在 <code>--noconfirm</code> 下会先自己删掉已存在的
+          <code>dist/&lt;name&gt;</code>。文件上千个时这一步会被安全软件拦下，
+          实测报 <code>SAFE_DELETE_BULK_CONFIRM_REQUIRED</code>。
+        </p>
+        <p class="small muted">
+          解法不是去找一个「确认删除」的开关，而是<b>把删除动作本身去掉</b>：
+          每次输出到全新的 <code>dist_&lt;时间戳&gt;</code> 目录，组装完再移动。
+          <code>--clean</code> 也从默认改为可选 —— 清缓存只会拖慢下次打包。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">2</span> 冻结环境里中文输出全是乱码</h3>
+        <p class="small muted">
+          自检脚本编成 exe 后输出乱码。原因不在 PyInstaller：冻结运行时下
+          stdout 走系统区域编码（中文 Windows 是 GBK），而父进程按 UTF-8 读。
+        </p>
+        <p class="small muted">
+          修法是脚本启动时强制 <code>sys.stdout.reconfigure(encoding="utf-8")</code>。
+          这个坑只在「父进程读子进程 stdout」时出现，本地直接跑完全看不到。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">3</span> <code>_internal/</code> 里找不到 urllib3 ≠ 没打进去</h3>
+        <p class="small muted">
+          检查打包结果时没找到 <code>urllib3</code>、<code>idna</code>、
+          <code>PIL/ImageTk.py</code>，一度判断为依赖缺失。
+        </p>
+        <p class="small muted">
+          实际上<b>纯 Python 模块被编译进 exe 内嵌的 PYZ</b>（本例 729 个模块），
+          只有带 <code>.pyd</code> 的包才会以目录形式落在
+          <code>_internal/</code>。要确认得展开 PYZ 去数模块，不能看目录 ——
+          顺带才确认了 pandas / numpy 确实没被混进去。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">4</span> DPAPI 的完整性保护有边界</h3>
+        <p class="small muted">
+          加密改造后做逐字节篡改测试：payload 区 274 字节全部被检测到。
+          但 DPAPI blob 的<b>字节 4–19 不受完整性保护</b> ——
+          那是 <code>dwFlags</code> 加 16 字节 description，属 API 已知行为。
+        </p>
+        <p class="small muted">
+          不实测一次，很容易误以为「整块 blob 都不可篡改」，
+          从而写出错误的威胁模型。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">5</span> 「能启动」不等于「能运行」</h3>
+        <p class="small muted">
+          最初的验证只做到「exe 起来后存活 12 秒不崩」。
+          这只能证明启动路径没炸，<b>证明不了运行时可用</b>：
+          证书链缺 <code>cacert.pem</code>、<code>sqlite3.dll</code> 版本不对、
+          <code>PIL.ImageTk</code> 找不到 <code>_imaging</code> ——
+          这三类都要真跑一次才暴露。
+        </p>
+        <p class="small muted">
+          这就是「三层验证」里第 3 层存在的唯一理由。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="num">6</span> CI 从没真正跑过，第一次跑就红了两次</h3>
+        <p class="small muted">
+          仓库初始化时漏提交了 <code>models.py</code>、<code>tests/</code>、
+          <code>.github/workflows/ci.yml</code> 三块 ——
+          clone 下来既没有 CI 定义，也跑不了 pytest。
+          补齐后推上去，第一次真正执行就暴露 <code>ruff check .</code>
+          在测试脚本上的 87 项问题。
+        </p>
+        <p class="small muted">
+          更隐蔽的是第二个：<code>mypy</code> <b>在本机 Windows 上过，
+          在 CI 的 Linux runner 上不过</b> —— <code>ctypes.windll</code> 与
+          <code>os.startfile</code> 在 Linux 的类型桩里不存在，
+          <code>sys.platform</code> 判断之后的代码还会被判成 unreachable。
+          mypy 默认按运行它的主机选类型桩，解法是显式钉住目标平台。
+        </p>
+        <p class="small muted">
+          教训很直白：<b>本地跑得通 ≠ 仓库是完好的</b>。
+          判断依据应该是「新机器 clone 下来能不能跑」。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 样例报告 ===================== -->
+<section id="sample">
+  <div class="wrap">
+    <p class="eyebrow">样例报告</p>
+    <h2>实际导出的 HTML 日志长这样</h2>
+    <p class="lede">
+      下面是<b>用程序真实的导出模块</b>生成的报告，只是把输入换成了合成数据 ——
+      排版、交互、统计逻辑都和你自己跑出来的完全一致。可以点进去搜关键词、切类型和日期。
+    </p>
+
+    <div class="frame-shell">
+      <div class="frame-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">data/output/微博互动_林知远_沈屿舟_样例.html</span>
+        <a href="sample/sample-report.html" target="_blank" rel="noopener"
+           style="margin-left:auto;font-size:12.5px">新标签页打开 ↗</a>
+      </div>
+      <iframe src="sample/sample-report.html" title="样例互动日志" loading="lazy"></iframe>
+    </div>
+
+    <p class="small muted" style="margin-top:12px">
+      报告为单文件自包含（无外部资源），可直接发给别人或用浏览器打开。
+      内容为合成数据，人物与微博均为虚构。
+    </p>
+  </div>
+</section>
+
+<!-- ===================== 安全与合规 ===================== -->
+<section id="compliance">
+  <div class="wrap">
+    <p class="eyebrow">安全与边界</p>
+    <h2>两件我做了和一件我没做的事</h2>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3><span class="pill p-ok">已做</span> 登录态加密存储</h3>
+        <p class="small muted">
+          原实现把含 <code>SUB</code>/<code>SUBP</code> 的登录态明文写在
+          <code>data/cookies.json</code> —— 任何能读到这个文件的人都能直接冒用账号。
+        </p>
+        <ul class="clean small">
+          <li>改用 Windows DPAPI 加密，附加熵绑定到本程序</li>
+          <li>密文绑定当前 Windows 用户与机器，换机器解不开</li>
+          <li>旧的明文文件会被自动识别并<b>就地升级</b>，用户无感</li>
+          <li>用 <code>CRYPTPROTECT_UI_FORBIDDEN</code>，打包成 GUI 后不会弹系统对话框</li>
+          <li>DPAPI 不可用时退回明文，保证程序不会因加密而不可用</li>
+        </ul>
+        <p class="small muted" style="margin-top:8px">
+          实测：payload 区 274 字节逐字节篡改<b>全部被检测到</b>。
+          （DPAPI blob 的 header 4~19 字节不受完整性保护，属已知行为，不涉及密文内容。）
+        </p>
+      </div>
+
+      <div class="card">
+        <h3><span class="pill p-bad">未做</span> 没有做成在线服务</h3>
+        <p class="small muted">
+          把「扫码登录 + 抓取」搬成公开网站技术上可行，但我判断不应该做，三条理由：
+        </p>
+        <ul class="clean small">
+          <li><b>它必须让访客交出微博登录态。</b>服务器要保存每个访客的 cookie，
+            一旦被攻破就是批量账号失窃 —— 形态上与钓鱼站没有区别。</li>
+          <li><b>违反微博用户协议。</b>微博禁止自动化抓取，公开站点规模化运行
+            必然被风控与 IP 封禁，且把违规行为放在了公网可查的位置。</li>
+          <li><b>抓到的是他人的互动数据。</b>公开提供「查某人和某人的互动」本身就是隐私问题。</li>
+        </ul>
+        <p class="small muted" style="margin-top:8px">
+          所以这个项目保持为<b>本地桌面工具</b>：数据不出本机，
+          登录态加密存在本机，抓取速率受控且总量有限。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 技术要点 ===================== -->
+<section id="notes">
+  <div class="wrap">
+    <p class="eyebrow">工程细节</p>
+    <h2>几个值得单独说的决定</h2>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>为什么断点要用 SQLite 而不是 JSON</h3>
+        <p class="small muted">
+          原实现每次保存都要「读全量 → 按 <code>_key</code> 在内存里合并 → 写全量」，
+          复杂度 O(记录数)；实测单个断点文件已经涨到 665 KB，而且靠
+          <code>os.replace</code> 做原子替换。改成 SQLite 后去重交给主键、
+          只写新增、断电也不会把整份断点写坏。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>断点保存失败为什么不该静默</h3>
+        <p class="small muted">
+          原实现是 <code>except Exception: pass</code>。断点写失败时用户毫无感知，
+          以为存了其实没存，下次「继续」会从更早的位置重扫甚至丢进度。
+          改成显式提示，但<b>不让提示本身的异常掩盖原始错误</b>。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>去依赖时发现的死代码</h3>
+        <p class="small muted">
+          原实现对正文做了 120 字截断。但截断后的数据只喂给汇总表（不涉及正文），
+          Excel / CSV 实际写进去的仍是完整记录 —— 这段截断<b>从来没生效过</b>。
+        </p>
+        <p class="small muted">
+          重构时很容易顺手「保持原行为」把死代码一并抄过来。判断依据应该是
+          <b>实际产物里是什么</b>，而不是源码里写了什么。
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>剪枝的前提是「能证明不影响覆盖度」</h3>
+        <p class="small muted">
+          评论双排序剪枝只在三种情况下生效：时间序拿到的条数等于接口声明的
+          <code>total_number</code>。如果被页数上限截断、条数少于声明值、
+          或者接口压根没返回这个字段，一律退回跑双排序 ——
+          <b>宁可多花请求，也不能漏数据</b>。
+        </p>
+      </div>
+    </div>
+
+    <div class="note warn" style="margin-top:20px">
+      <p class="t">已知限制</p>
+      <ul class="clean small">
+        <li><b>点赞数据可能不完整</b>：微博网页版没有公开的点赞列表接口，
+          改用移动端接口尽力尝试，接口不可用时自动暂停并在每 50 条微博后重试。</li>
+        <li><b>评论可能不全</b>：评论区存在折叠与拉黑隐藏机制，
+          被博主拉黑的用户其评论对公众完全隐藏，公开接口无法获取。</li>
+        <li><b>只能抓公开内容</b>：对方的隐私设置、已删除内容、仅粉丝可见的微博都拿不到。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>
+      个人项目 · 用于练习工程化改造与打包验证<br>
+      页面内所有数据均为合成样例，人物与微博内容均为虚构
+    </div>
+    <div>
+      Python 3.13 · PyInstaller 6.22 · Windows 10/11 64 位
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

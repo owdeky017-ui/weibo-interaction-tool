@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微博互动日志：林知远 × 沈屿舟</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: #f1f5f9; color: #1e293b; padding: 24px 16px; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  header { background: #fff; border-radius: 14px; padding: 22px 26px; margin-bottom: 18px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  h1 { font-size: 20px; margin-bottom: 6px; }
+  .sub { color: #64748b; font-size: 13px; }
+  .stat { margin-top: 10px; font-size: 13px; color: #475569; }
+  .stat b { color: #0f172a; }
+  .fail-bar { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 10px;
+               padding: 10px 14px; font-size: 13px; margin-top: 12px; }
+  .fail-detail { display: block; color: #7f1d1d; font-size: 12px; margin-top: 4px;
+                  word-break: break-all; }
+  .stats-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .stat-card { flex: 1; min-width: 92px; background: #f8fafc; border: 1px solid #e8edf3;
+                border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 700; }
+  .stat-label { font-size: 12px; color: #64748b; margin-top: 2px; }
+  .trend-wrap { margin-top: 14px; background: #f8fafc; border: 1px solid #e8edf3;
+                 border-radius: 10px; padding: 12px 14px; }
+  .trend-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+  .trend-title { font-size: 13px; color: #475569; }
+  .trend-legend { display: inline-flex; gap: 14px; font-size: 12px; color: #64748b; flex-wrap: wrap; }
+  .trend-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .trend-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .trend-svg { width: 100%; height: auto; display: block; }
+  .trend-axis { font-size: 10px; fill: #94a3b8; }
+  .trend-x { font-size: 10px; fill: #94a3b8; }
+  .trend-num { font-size: 10px; font-weight: 600; }
+  .trend-empty { color: #cbd5e1; font-size: 13px; text-align: center; padding: 30px 0; }
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+                 background: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+                 box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .filter-bar input[type=text], .filter-bar input[type=date], .filter-bar select {
+    border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 13px;
+    font-family: inherit; background: #fff; }
+  .filter-bar input[type=text] { width: 200px; }
+  .filter-cnt { margin-left: auto; font-size: 12px; color: #64748b; }
+  .filter-clear { border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; padding: 6px 12px;
+                   font-size: 13px; cursor: pointer; color: #475569; }
+  .filter-clear:hover { background: #f1f5f9; }
+  .ztab-bar { display: flex; gap: 10px; margin-bottom: 0; }
+  .ztab { flex: 1; border: none; background: #e2e8f0; color: #475569; font-size: 15px; font-weight: 600;
+           padding: 12px 14px; border-radius: 10px 10px 0 0; cursor: pointer;
+           display: flex; align-items: center; justify-content: center; gap: 8px;
+           border-bottom: 3px solid transparent; }
+  .ztab:hover { background: #cbd5e1; }
+  .ztab.active { background: #0f172a; color: #fff; border-bottom-color: #0f172a; }
+  .ztab .zsub { font-size: 12px; font-weight: 400; opacity: .72; min-width: 0;
+                 overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ztab .n, .stab .n { background: rgba(0,0,0,.08); color: inherit; font-size: 12px; font-weight: 600;
+                         padding: 1px 8px; border-radius: 999px; flex-shrink: 0; }
+  .ztab.active .n { background: rgba(255,255,255,.22); color: #fff; }
+  .zone-panel { display: none; background: #fff; border-radius: 0 0 14px 14px;
+                 padding: 18px 22px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08);
+                 border-top: 1px solid #eef2f7; }
+  .zone-panel.active { display: block; }
+  .zone-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+  .zone-head h2 { font-size: 17px; color: #0f172a; }
+  .zone-count { color: #64748b; font-size: 13px; }
+  .stab-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+               padding: 10px 12px; background: #f1f5f9; border-radius: 10px;
+               border: 1px solid #e8edf3; }
+  .stab { border: none; background: transparent; color: #475569; font-size: 13px; font-weight: 600;
+           padding: 7px 14px; border-radius: 8px; cursor: pointer;
+           display: inline-flex; align-items: center; gap: 6px; }
+  .stab:hover { background: #e2e8f0; }
+  .stab.active { background: #2563eb; color: #fff; }
+  .stab.active .n { background: rgba(255,255,255,.25); color: #fff; }
+  .sub-panel { display: none; }
+  .sub-panel.active { display: block; }
+  .card { background: #fff; border: 1px solid #eef2f7; border-radius: 12px; padding: 14px 18px;
+           margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .badge { color: #fff; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .time { color: #94a3b8; font-size: 12px; margin-left: auto; }
+  .line { font-size: 14px; margin-bottom: 8px; }
+  .act { background: #f8fafc; border-radius: 8px; padding: 8px 12px; font-size: 14px;
+          margin-bottom: 10px; word-break: break-word; }
+  .act.muted { color: #94a3b8; font-style: italic; }
+  .replyto { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 7px 12px;
+              font-size: 13px; color: #1e40af; margin-bottom: 10px; word-break: break-word; }
+  .replyto .rtext { color: #1d4ed8; }
+  .quote { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+  .quote-head { color: #b45309; font-size: 12px; margin-bottom: 4px; }
+  .quote-body { color: #78350f; word-break: break-word; margin-bottom: 4px; }
+  .quote a { color: #d97706; text-decoration: none; font-size: 12px; }
+  .empty { background: #fff; border-radius: 12px; padding: 40px; text-align: center; color: #94a3b8; }
+  .empty-mini { color: #cbd5e1; font-size: 13px; padding: 12px 0; }
+  a { color: #2563eb; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>微博互动日志：林知远 × 沈屿舟</h1>
+    <div class="sub">大标签页按方向分（A→B / B→A），页内按 转发 / 点赞 / 评论 / 评论回复 分小标签页</div>
+    
+    <div class="stats-row"><div class="stat-card"><div class="stat-num" id="stat-total" style="color:#0f172a">0</div><div class="stat-label">总互动</div></div><div class="stat-card"><div class="stat-num" id="stat-转发" style="color:#3b82f6">0</div><div class="stat-label">转发</div></div><div class="stat-card"><div class="stat-num" id="stat-评论" style="color:#10b981">0</div><div class="stat-label">评论</div></div><div class="stat-card"><div class="stat-num" id="stat-评论回复" style="color:#06b6d4">0</div><div class="stat-label">评论回复</div></div><div class="stat-card"><div class="stat-num" id="stat-点赞" style="color:#f43f5e">0</div><div class="stat-label">点赞</div></div><div class="stat-card"><div class="stat-num" id="stat-toB" style="color:#7c3aed">0</div><div class="stat-label">林知远 → 沈屿舟</div></div><div class="stat-card"><div class="stat-num" id="stat-toA" style="color:#ea580c">0</div><div class="stat-label">沈屿舟 → 林知远</div></div></div><div class="trend-wrap"><div class="trend-head"><span class="trend-title">每月互动趋势</span><span class="trend-legend"><span><i style="background:#10b981"></i>评论（含评论回复）</span><span><i style="background:#3b82f6"></i>转发</span><span><i style="background:#f43f5e"></i>点赞</span></span></div><div id="trend-box"></div></div>
+    <div class="stat">共 <b id="stat-total-line">52</b> 条互动记录</div>
+  </header>
+  <div class="filter-bar">
+    <input type="text" id="kw" placeholder="搜索关键词（内容/昵称/类型）…" oninput="applyFilter()">
+    <select id="ftype" onchange="applyFilter()">
+      <option value="">全部类型</option>
+      <option>转发</option>
+      <option>评论</option>
+      <option>评论回复</option>
+      <option>点赞</option>
+    </select>
+    <input type="date" id="fstart" onchange="applyFilter()">
+    <span style="color:#94a3b8">~</span>
+    <input type="date" id="fend" onchange="applyFilter()">
+    <button class="filter-clear" onclick="clearFilter()">清空</button>
+    <span class="filter-cnt" id="fcnt"></span>
+  </div>
+  <div class="ztab-bar"><button class="ztab active" id="ztab-toB" onclick="showZone('toB')"><span class="ztitle">林知远 → 沈屿舟</span><span class="n">29</span></button><button class="ztab" id="ztab-toA" onclick="showZone('toA')"><span class="ztitle">沈屿舟 → 林知远</span><span class="n">23</span></button></div>
+  
+    <section class="zone-panel" id="toB">
+      <div class="zone-head">
+        <h2>林知远 → 沈屿舟</h2>
+        <span class="zone-count">共 29 条</span>
+      </div>
+      <div class="stab-bar"><button class="stab" data-block="转发" onclick="showBlock('toB', '转发')">转发<span class="n">7</span></button><button class="stab" data-block="点赞" onclick="showBlock('toB', '点赞')">点赞<span class="n">7</span></button><button class="stab" data-block="评论" onclick="showBlock('toB', '评论')">评论<span class="n">7</span></button><button class="stab" data-block="评论回复" onclick="showBlock('toB', '评论回复')">评论回复<span class="n">8</span></button></div>
+      <div id="toB-转发" class="sub-panel">
+        <div class="card" data-type="转发" data-day="2026-03-10" data-dir="A→B" data-search="转发 沈屿舟 林知远 都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。 同感，我也遇到过一模一样的问题。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-03-10 23:12:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">同感，我也遇到过一模一样的问题。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-10 12:12:00</div>
+            <div class="quote-body">都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。</div>
+            <a href="https://weibo.com/1000000001/sample4" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-04-07" data-dir="A→B" data-search="转发 沈屿舟 林知远 终于把断点续传从 json 换成 sqlite 了，每次保存不用再重写整个文件。 说得对，这块确实容易踩坑。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-04-07 22:24:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">说得对，这块确实容易踩坑。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-04 09:24:00</div>
+            <div class="quote-body">终于把断点续传从 JSON 换成 SQLite 了，每次保存不用再重写整个文件。</div>
+            <a href="https://weibo.com/1000000001/sample9" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-06-03" data-dir="A→B" data-search="转发 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 学习了，感谢分享。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-06-03 18:30:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">学习了，感谢分享。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-29 17:30:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample21" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-06-26" data-dir="A→B" data-search="转发 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 学习了，感谢分享。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-06-26 19:44:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">学习了，感谢分享。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-26 19:44:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample25" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-07-28" data-dir="A→B" data-search="转发 沈屿舟 林知远 都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。 学习了，感谢分享。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-07-28 17:15:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">学习了，感谢分享。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-26 17:15:00</div>
+            <div class="quote-body">都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。</div>
+            <a href="https://weibo.com/1000000001/sample31" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-08-20" data-dir="A→B" data-search="转发 沈屿舟 林知远 第一次用 pyinstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。 收藏了，回头细看。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-08-20 15:50:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">收藏了，回头细看。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-14 12:50:00</div>
+            <div class="quote-body">第一次用 PyInstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。</div>
+            <a href="https://weibo.com/1000000001/sample36" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-09-25" data-dir="A→B" data-search="转发 沈屿舟 林知远 周末去 howth 走了那条悬崖步道，风大到站不稳，但景色确实值。 同感，我也遇到过一模一样的问题。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-09-25 08:12:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">同感，我也遇到过一模一样的问题。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-18 22:12:00</div>
+            <div class="quote-body">周末去 Howth 走了那条悬崖步道，风大到站不稳，但景色确实值。</div>
+            <a href="https://weibo.com/1000000001/sample43" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toB-点赞" class="sub-panel">
+        <div class="card" data-type="点赞" data-day="2026-03-21" data-dir="A→B" data-search="点赞 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-03-21 22:51:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-17 10:51:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample2" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-05-23" data-dir="A→B" data-search="点赞 沈屿舟 林知远 都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-05-23 23:47:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-22 22:47:00</div>
+            <div class="quote-body">都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。</div>
+            <a href="https://weibo.com/1000000001/sample13" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-05-25" data-dir="A→B" data-search="点赞 沈屿舟 林知远 第一次用 pyinstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-05-25 19:34:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-24 04:34:00</div>
+            <div class="quote-body">第一次用 PyInstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。</div>
+            <a href="https://weibo.com/1000000001/sample14" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-06-20" data-dir="A→B" data-search="点赞 沈屿舟 林知远 终于把断点续传从 json 换成 sqlite 了，每次保存不用再重写整个文件。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-06-20 11:27:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-15 01:27:00</div>
+            <div class="quote-body">终于把断点续传从 JSON 换成 SQLite 了，每次保存不用再重写整个文件。</div>
+            <a href="https://weibo.com/1000000001/sample22" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-08-18" data-dir="A→B" data-search="点赞 沈屿舟 林知远 都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-08-18 16:01:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-17 13:01:00</div>
+            <div class="quote-body">都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。</div>
+            <a href="https://weibo.com/1000000001/sample39" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-08-24" data-dir="A→B" data-search="点赞 沈屿舟 林知远 看完《designing data-intensive applications》第 5 章，对复制这块终于有了整体认识。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-08-24 15:59:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-22 01:59:00</div>
+            <div class="quote-body">看完《Designing Data-Intensive Applications》第 5 章，对复制这块终于有了整体认识。</div>
+            <a href="https://weibo.com/1000000001/sample37" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-09-21" data-dir="A→B" data-search="点赞 沈屿舟 林知远 周末去 howth 走了那条悬崖步道，风大到站不稳，但景色确实值。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-09-21 21:50:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-18 09:50:00</div>
+            <div class="quote-body">周末去 Howth 走了那条悬崖步道，风大到站不稳，但景色确实值。</div>
+            <a href="https://weibo.com/1000000001/sample47" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toB-评论" class="sub-panel">
+        <div class="card" data-type="评论" data-day="2026-04-20" data-dir="A→B" data-search="评论 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 想问下你当时是怎么定位到这个问题的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-04-20 13:06:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">想问下你当时是怎么定位到这个问题的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-16 09:06:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample11" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-05-05" data-dir="A→B" data-search="评论 沈屿舟 林知远 终于把断点续传从 json 换成 sqlite 了，每次保存不用再重写整个文件。 哈哈这个我懂。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-05-05 17:00:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">哈哈这个我懂。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-29 05:00:00</div>
+            <div class="quote-body">终于把断点续传从 JSON 换成 SQLite 了，每次保存不用再重写整个文件。</div>
+            <a href="https://weibo.com/1000000001/sample17" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-06-16" data-dir="A→B" data-search="评论 沈屿舟 林知远 周末去 howth 走了那条悬崖步道，风大到站不稳，但景色确实值。 想问下你当时是怎么定位到这个问题的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-06-16 11:05:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">想问下你当时是怎么定位到这个问题的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-09 20:05:00</div>
+            <div class="quote-body">周末去 Howth 走了那条悬崖步道，风大到站不稳，但景色确实值。</div>
+            <a href="https://weibo.com/1000000001/sample27" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-07-28" data-dir="A→B" data-search="评论 沈屿舟 林知远 把毕设的数据管道重写了一遍，从 pandas 换成 openpyxl + csv，打包体积直接少了 19mb。 这个观点我有不同看法，感觉还有别的可能。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-07-28 08:29:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">这个观点我有不同看法，感觉还有别的可能。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-24 06:29:00</div>
+            <div class="quote-body">把毕设的数据管道重写了一遍，从 pandas 换成 openpyxl + csv，打包体积直接少了 19MB。</div>
+            <a href="https://weibo.com/1000000001/sample30" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-08-16" data-dir="A→B" data-search="评论 沈屿舟 林知远 终于把断点续传从 json 换成 sqlite 了，每次保存不用再重写整个文件。 写得很清楚，比官方文档好懂。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-08-16 15:39:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">写得很清楚，比官方文档好懂。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-15 00:39:00</div>
+            <div class="quote-body">终于把断点续传从 JSON 换成 SQLite 了，每次保存不用再重写整个文件。</div>
+            <a href="https://weibo.com/1000000001/sample40" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-09-07" data-dir="A→B" data-search="评论 沈屿舟 林知远 把毕设的数据管道重写了一遍，从 pandas 换成 openpyxl + csv，打包体积直接少了 19mb。 想问下你当时是怎么定位到这个问题的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-09-07 21:04:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">想问下你当时是怎么定位到这个问题的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-02 04:04:00</div>
+            <div class="quote-body">把毕设的数据管道重写了一遍，从 pandas 换成 openpyxl + csv，打包体积直接少了 19MB。</div>
+            <a href="https://weibo.com/1000000001/sample46" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-09-28" data-dir="A→B" data-search="评论 沈屿舟 林知远 都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。 这个观点我有不同看法，感觉还有别的可能。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-09-28 18:32:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">这个观点我有不同看法，感觉还有别的可能。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-24 12:32:00</div>
+            <div class="quote-body">都柏林终于放晴了，图书馆四楼窗边位置今天很难抢。</div>
+            <a href="https://weibo.com/1000000001/sample44" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toB-评论回复" class="sub-panel">
+        <div class="card" data-type="评论回复" data-day="2026-04-01" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 第一次用 pyinstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。 推荐直接看官方那篇 rfc，比二手资料准。 林知远 我上周也刚看完这一章，确实写得好。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-04-01 11:04:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">推荐直接看官方那篇 RFC，比二手资料准。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">我上周也刚看完这一章，确实写得好。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-27 08:04:00</div>
+            <div class="quote-body">第一次用 PyInstaller 打包带 tkinter 的程序，tcl/tk 的目录结构绕了半天才搞明白。</div>
+            <a href="https://weibo.com/1000000001/sample7" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-04-06" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 推荐直接看官方那篇 rfc，比二手资料准。 林知远 所以最后是怎么解决的？">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-04-06 08:03:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">推荐直接看官方那篇 RFC，比二手资料准。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">所以最后是怎么解决的？</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-03 15:03:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample8" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-04-23" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 终于把断点续传从 json 换成 sqlite 了，每次保存不用再重写整个文件。 确实，我漏了并发那一层。 林知远 写得很清楚，比官方文档好懂。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-04-23 13:39:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">确实，我漏了并发那一层。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">写得很清楚，比官方文档好懂。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-22 05:39:00</div>
+            <div class="quote-body">终于把断点续传从 JSON 换成 SQLite 了，每次保存不用再重写整个文件。</div>
+            <a href="https://weibo.com/1000000001/sample10" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-06-22" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 周末去 howth 走了那条悬崖步道，风大到站不稳，但景色确实值。 主要是看日志里返回的时间戳不对，才发现是时区的问题。 林知远 哈哈这个我懂。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-06-22 13:45:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">主要是看日志里返回的时间戳不对，才发现是时区的问题。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">哈哈这个我懂。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-15 19:45:00</div>
+            <div class="quote-body">周末去 Howth 走了那条悬崖步道，风大到站不稳，但景色确实值。</div>
+            <a href="https://weibo.com/1000000001/sample23" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-07-15" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 看完《designing data-intensive applications》第 5 章，对复制这块终于有了整体认识。 回头我把细节整理一下发出来。 林知远 所以最后是怎么解决的？">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-07-15 16:28:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">回头我把细节整理一下发出来。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">所以最后是怎么解决的？</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-14 15:28:00</div>
+            <div class="quote-body">看完《Designing Data-Intensive Applications》第 5 章，对复制这块终于有了整体认识。</div>
+            <a href="https://weibo.com/1000000001/sample29" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-09-11" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 看完《designing data-intensive applications》第 5 章，对复制这块终于有了整体认识。 回头我把细节整理一下发出来。 林知远 有没有推荐的入门资料？">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-09-11 12:17:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">回头我把细节整理一下发出来。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">有没有推荐的入门资料？</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-09 21:17:00</div>
+            <div class="quote-body">看完《Designing Data-Intensive Applications》第 5 章，对复制这块终于有了整体认识。</div>
+            <a href="https://weibo.com/1000000001/sample50" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-09-13" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。 回头我把细节整理一下发出来。 林知远 写得很清楚，比官方文档好懂。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-09-13 16:07:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">回头我把细节整理一下发出来。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">写得很清楚，比官方文档好懂。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-07 23:07:00</div>
+            <div class="quote-body">面了一家做支付的公司，问了一堆并发和幂等的问题，感觉答得一般。</div>
+            <a href="https://weibo.com/1000000001/sample51" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-09-23" data-dir="A→B" data-search="评论回复 沈屿舟 林知远 周末去 howth 走了那条悬崖步道，风大到站不稳，但景色确实值。 嗯，下次注意。 林知远 我上周也刚看完这一章，确实写得好。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-09-23 20:37:00</span>
+          </div>
+          <div class="line"><b>沈屿舟</b> 互动了 <b>林知远</b> 的微博 · <a href="https://weibo.com/u/1000000002" target="_blank">互动者主页</a></div>
+          <div class="act">嗯，下次注意。</div>
+          <div class="replyto">↪ 回复 <b>林知远</b> 的评论：<span class="rtext">我上周也刚看完这一章，确实写得好。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-19 09:37:00</div>
+            <div class="quote-body">周末去 Howth 走了那条悬崖步道，风大到站不稳，但景色确实值。</div>
+            <a href="https://weibo.com/1000000001/sample45" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div>
+    </section>
+    <section class="zone-panel" id="toA">
+      <div class="zone-head">
+        <h2>沈屿舟 → 林知远</h2>
+        <span class="zone-count">共 23 条</span>
+      </div>
+      <div class="stab-bar"><button class="stab" data-block="转发" onclick="showBlock('toA', '转发')">转发<span class="n">2</span></button><button class="stab" data-block="点赞" onclick="showBlock('toA', '点赞')">点赞<span class="n">4</span></button><button class="stab" data-block="评论" onclick="showBlock('toA', '评论')">评论<span class="n">11</span></button><button class="stab" data-block="评论回复" onclick="showBlock('toA', '评论回复')">评论回复<span class="n">6</span></button></div>
+      <div id="toA-转发" class="sub-panel">
+        <div class="card" data-type="转发" data-day="2026-05-01" data-dir="B→A" data-search="转发 林知远 沈屿舟 推荐一个查 git 提交历史的工具，比 git log --graph 好用不少。 这个思路很清晰。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-05-01 12:44:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">这个思路很清晰。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-01 08:44:00</div>
+            <div class="quote-body">推荐一个查 Git 提交历史的工具，比 git log --graph 好用不少。</div>
+            <a href="https://weibo.com/1000000002/sample15" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="转发" data-day="2026-07-27" data-dir="B→A" data-search="转发 林知远 沈屿舟 写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。 转发一下，正好有朋友需要。 ">
+          <div class="meta">
+            <span class="badge" style="background:#3b82f6">转发</span>
+            
+            <span class="time">2026-07-27 08:19:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">转发一下，正好有朋友需要。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-26 03:19:00</div>
+            <div class="quote-body">写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。</div>
+            <a href="https://weibo.com/1000000002/sample32" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toA-点赞" class="sub-panel">
+        <div class="card" data-type="点赞" data-day="2026-03-24" data-dir="B→A" data-search="点赞 林知远 沈屿舟 公司楼下的咖啡换供应商了，味道居然变好了。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-03-24 23:02:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-18 08:02:00</div>
+            <div class="quote-body">公司楼下的咖啡换供应商了，味道居然变好了。</div>
+            <a href="https://weibo.com/1000000002/sample3" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-05-15" data-dir="B→A" data-search="点赞 林知远 沈屿舟 推荐一个查 git 提交历史的工具，比 git log --graph 好用不少。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-05-15 19:26:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-13 15:26:00</div>
+            <div class="quote-body">推荐一个查 Git 提交历史的工具，比 git log --graph 好用不少。</div>
+            <a href="https://weibo.com/1000000002/sample19" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-06-16" data-dir="B→A" data-search="点赞 林知远 沈屿舟 写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-06-16 11:17:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-11 09:17:00</div>
+            <div class="quote-body">写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。</div>
+            <a href="https://weibo.com/1000000002/sample20" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="点赞" data-day="2026-07-19" data-dir="B→A" data-search="点赞 林知远 沈屿舟 公司楼下的咖啡换供应商了，味道居然变好了。 点赞了这条微博 ">
+          <div class="meta">
+            <span class="badge" style="background:#f43f5e">点赞</span>
+            
+            <span class="time">2026-07-19 19:03:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">点赞了这条微博</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-18 11:03:00</div>
+            <div class="quote-body">公司楼下的咖啡换供应商了，味道居然变好了。</div>
+            <a href="https://weibo.com/1000000002/sample35" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toA-评论" class="sub-panel">
+        <div class="card" data-type="评论" data-day="2026-03-19" data-dir="B→A" data-search="评论 林知远 沈屿舟 把项目里的 pandas 依赖干掉了，ci 时间从 6 分钟降到 2 分半。 哈哈这个我懂。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-03-19 22:42:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">哈哈这个我懂。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-18 17:42:00</div>
+            <div class="quote-body">把项目里的 pandas 依赖干掉了，CI 时间从 6 分钟降到 2 分半。</div>
+            <a href="https://weibo.com/1000000002/sample1" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-03-22" data-dir="B→A" data-search="评论 林知远 沈屿舟 推荐一个查 git 提交历史的工具，比 git log --graph 好用不少。 有没有推荐的入门资料？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-03-22 20:10:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">有没有推荐的入门资料？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-03-20 04:10:00</div>
+            <div class="quote-body">推荐一个查 Git 提交历史的工具，比 git log --graph 好用不少。</div>
+            <a href="https://weibo.com/1000000002/sample0" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-04-04" data-dir="B→A" data-search="评论 林知远 沈屿舟 把项目里的 pandas 依赖干掉了，ci 时间从 6 分钟降到 2 分半。 这个观点我有不同看法，感觉还有别的可能。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-04-04 09:48:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">这个观点我有不同看法，感觉还有别的可能。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-01 15:48:00</div>
+            <div class="quote-body">把项目里的 pandas 依赖干掉了，CI 时间从 6 分钟降到 2 分半。</div>
+            <a href="https://weibo.com/1000000002/sample6" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-04-17" data-dir="B→A" data-search="评论 林知远 沈屿舟 写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。 所以最后是怎么解决的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-04-17 17:41:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">所以最后是怎么解决的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-14 01:41:00</div>
+            <div class="quote-body">写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。</div>
+            <a href="https://weibo.com/1000000002/sample12" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-06-07" data-dir="B→A" data-search="评论 林知远 沈屿舟 年底了，又开始有人问我要不要跳槽。 想问下你当时是怎么定位到这个问题的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-06-07 17:48:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">想问下你当时是怎么定位到这个问题的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-04 02:48:00</div>
+            <div class="quote-body">年底了，又开始有人问我要不要跳槽。</div>
+            <a href="https://weibo.com/1000000002/sample26" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-07-08" data-dir="B→A" data-search="评论 林知远 沈屿舟 都柏林今年的雨比去年多，感觉每天都在下雨。 所以最后是怎么解决的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-07-08 08:58:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">所以最后是怎么解决的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-07 06:58:00</div>
+            <div class="quote-body">都柏林今年的雨比去年多，感觉每天都在下雨。</div>
+            <a href="https://weibo.com/1000000002/sample28" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-07-22" data-dir="B→A" data-search="评论 林知远 沈屿舟 今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。 哈哈这个我懂。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-07-22 10:06:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">哈哈这个我懂。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-18 21:06:00</div>
+            <div class="quote-body">今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。</div>
+            <a href="https://weibo.com/1000000002/sample34" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-08-09" data-dir="B→A" data-search="评论 林知远 沈屿舟 写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。 想问下你当时是怎么定位到这个问题的？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-08-09 15:11:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">想问下你当时是怎么定位到这个问题的？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-07 08:11:00</div>
+            <div class="quote-body">写了个脚本自动整理下载文件夹，跑完发现删掉的全是我自己要用的。</div>
+            <a href="https://weibo.com/1000000002/sample38" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-08-13" data-dir="B→A" data-search="评论 林知远 沈屿舟 今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。 写得很清楚，比官方文档好懂。 ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-08-13 14:05:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">写得很清楚，比官方文档好懂。</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-10 13:05:00</div>
+            <div class="quote-body">今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。</div>
+            <a href="https://weibo.com/1000000002/sample41" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-08-17" data-dir="B→A" data-search="评论 林知远 沈屿舟 重新看了一遍 tcp 拥塞控制，慢启动那块以前一直是一知半解。 有没有推荐的入门资料？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-08-17 22:13:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">有没有推荐的入门资料？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-08-12 20:13:00</div>
+            <div class="quote-body">重新看了一遍 TCP 拥塞控制，慢启动那块以前一直是一知半解。</div>
+            <a href="https://weibo.com/1000000002/sample42" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论" data-day="2026-09-06" data-dir="B→A" data-search="评论 林知远 沈屿舟 公司楼下的咖啡换供应商了，味道居然变好了。 有没有推荐的入门资料？ ">
+          <div class="meta">
+            <span class="badge" style="background:#10b981">评论</span>
+            
+            <span class="time">2026-09-06 21:18:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">有没有推荐的入门资料？</div>
+          
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-03 21:18:00</div>
+            <div class="quote-body">公司楼下的咖啡换供应商了，味道居然变好了。</div>
+            <a href="https://weibo.com/1000000002/sample48" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div><div id="toA-评论回复" class="sub-panel">
+        <div class="card" data-type="评论回复" data-day="2026-04-09" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。 主要是看日志里返回的时间戳不对，才发现是时区的问题。 沈屿舟 哈哈这个我懂。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-04-09 21:57:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">主要是看日志里返回的时间戳不对，才发现是时区的问题。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">哈哈这个我懂。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-04-06 04:57:00</div>
+            <div class="quote-body">今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。</div>
+            <a href="https://weibo.com/1000000002/sample5" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-05-05" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。 回头我把细节整理一下发出来。 沈屿舟 有没有推荐的入门资料？">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-05-05 21:47:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">回头我把细节整理一下发出来。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">有没有推荐的入门资料？</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-03 19:47:00</div>
+            <div class="quote-body">今天调了一天的接口，最后发现是对方的时区处理有问题，白忙一场。</div>
+            <a href="https://weibo.com/1000000002/sample16" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-05-09" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 把项目里的 pandas 依赖干掉了，ci 时间从 6 分钟降到 2 分半。 主要是看日志里返回的时间戳不对，才发现是时区的问题。 沈屿舟 我上周也刚看完这一章，确实写得好。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-05-09 08:30:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">主要是看日志里返回的时间戳不对，才发现是时区的问题。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">我上周也刚看完这一章，确实写得好。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-05-06 01:30:00</div>
+            <div class="quote-body">把项目里的 pandas 依赖干掉了，CI 时间从 6 分钟降到 2 分半。</div>
+            <a href="https://weibo.com/1000000002/sample18" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-06-17" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 重新看了一遍 tcp 拥塞控制，慢启动那块以前一直是一知半解。 回头我把细节整理一下发出来。 沈屿舟 写得很清楚，比官方文档好懂。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-06-17 12:06:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">回头我把细节整理一下发出来。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">写得很清楚，比官方文档好懂。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-06-12 21:06:00</div>
+            <div class="quote-body">重新看了一遍 TCP 拥塞控制，慢启动那块以前一直是一知半解。</div>
+            <a href="https://weibo.com/1000000002/sample24" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-07-26" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 都柏林今年的雨比去年多，感觉每天都在下雨。 推荐直接看官方那篇 rfc，比二手资料准。 沈屿舟 这个观点我有不同看法，感觉还有别的可能。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-07-26 22:24:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">推荐直接看官方那篇 RFC，比二手资料准。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">这个观点我有不同看法，感觉还有别的可能。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-07-21 22:24:00</div>
+            <div class="quote-body">都柏林今年的雨比去年多，感觉每天都在下雨。</div>
+            <a href="https://weibo.com/1000000002/sample33" target="_blank">查看原微博 →</a>
+          </div>
+        </div>
+        <div class="card" data-type="评论回复" data-day="2026-09-18" data-dir="B→A" data-search="评论回复 林知远 沈屿舟 年底了，又开始有人问我要不要跳槽。 确实，我漏了并发那一层。 沈屿舟 这个观点我有不同看法，感觉还有别的可能。">
+          <div class="meta">
+            <span class="badge" style="background:#06b6d4">评论回复</span>
+            
+            <span class="time">2026-09-18 09:03:00</span>
+          </div>
+          <div class="line"><b>林知远</b> 互动了 <b>沈屿舟</b> 的微博 · <a href="https://weibo.com/u/1000000001" target="_blank">互动者主页</a></div>
+          <div class="act">确实，我漏了并发那一层。</div>
+          <div class="replyto">↪ 回复 <b>沈屿舟</b> 的评论：<span class="rtext">这个观点我有不同看法，感觉还有别的可能。</span></div>
+          <div class="quote">
+            <div class="quote-head">原微博 · 2026-09-14 18:03:00</div>
+            <div class="quote-body">年底了，又开始有人问我要不要跳槽。</div>
+            <a href="https://weibo.com/1000000002/sample49" target="_blank">查看原微博 →</a>
+          </div>
+        </div></div>
+    </section>
+</div>
+<script>
+
+var TOTAL_CARDS = document.querySelectorAll('.card').length;
+
+function showZone(zone) {
+  document.querySelectorAll('.ztab').forEach(b => b.classList.remove('active'));
+  document.getElementById('ztab-' + zone).classList.add('active');
+  document.querySelectorAll('.zone-panel').forEach(p => p.classList.remove('active'));
+  var panel = document.getElementById(zone);
+  panel.classList.add('active');
+  var first = panel.querySelector('.stab');
+  if (first) showBlock(zone, first.getAttribute('data-block'));
+}
+
+function showBlock(zone, block) {
+  document.querySelectorAll('#' + zone + ' .stab').forEach(b => b.classList.remove('active'));
+  document.querySelector('#' + zone + ' .stab[data-block="' + block + '"]').classList.add('active');
+  document.querySelectorAll('#' + zone + ' .sub-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(zone + '-' + block).classList.add('active');
+}
+
+function visibleRows() {
+  var rows = [];
+  document.querySelectorAll('.card').forEach(function (c) {
+    if (c.style.display === 'none') return;
+    rows.push({
+      t: c.getAttribute('data-type'),
+      d: (c.getAttribute('data-day') || '').slice(0, 7),
+      day: c.getAttribute('data-day') || '',
+      dir: c.getAttribute('data-dir') || ''
+    });
+  });
+  return rows;
+}
+
+function refreshStats() {
+  var rows = visibleRows();
+  var total = rows.length;
+  var byType = { '转发': 0, '评论': 0, '评论回复': 0, '点赞': 0 };
+  var byDir = { 'A→B': 0, 'B→A': 0 };
+  var byZoneBlock = {};
+  rows.forEach(function (r) {
+    if (byType[r.t] !== undefined) byType[r.t]++;
+    if (byDir[r.dir] !== undefined) byDir[r.dir]++;
+    var zone = r.dir === 'A→B' ? 'toB' : 'toA';
+    var block = (r.t === '@提及') ? '评论' : r.t;
+    var key = zone + '|' + block;
+    byZoneBlock[key] = (byZoneBlock[key] || 0) + 1;
+  });
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-转发').textContent = byType['转发'];
+  document.getElementById('stat-评论').textContent = byType['评论'];
+  document.getElementById('stat-评论回复').textContent = byType['评论回复'];
+  document.getElementById('stat-点赞').textContent = byType['点赞'];
+  document.getElementById('stat-toB').textContent = byDir['A→B'];
+  document.getElementById('stat-toA').textContent = byDir['B→A'];
+  var tl = document.getElementById('stat-total-line');
+  if (tl) tl.textContent = total;
+  document.querySelectorAll('.ztab').forEach(function (b) {
+    var zone = b.id.replace('ztab-', '');
+    var dir = zone === 'toB' ? 'A→B' : 'B→A';
+    var span = b.querySelector('.n');
+    if (span) span.textContent = byDir[dir] || 0;
+  });
+  document.querySelectorAll('.stab').forEach(function (b) {
+    var zone = b.closest('.zone-panel').id;
+    var block = b.getAttribute('data-block');
+    var span = b.querySelector('.n');
+    if (span) span.textContent = byZoneBlock[zone + '|' + block] || 0;
+  });
+  document.querySelectorAll('.zone-panel').forEach(function (p) {
+    var dir = p.id === 'toB' ? 'A→B' : 'B→A';
+    var cnt = p.querySelector('.zone-count');
+    if (cnt) cnt.textContent = '共 ' + (byDir[dir] || 0) + ' 条';
+  });
+}
+
+var TREND_COLORS = { '评论': '#10b981', '转发': '#3b82f6', '点赞': '#f43f5e' };
+
+function buildTrend() {
+  var rows = visibleRows();
+  var months = {}, order = [];
+  rows.forEach(function (r) {
+    if (!r.d) return;
+    if (!months[r.d]) { months[r.d] = { '评论': 0, '转发': 0, '点赞': 0 }; order.push(r.d); }
+    if (r.t === '评论回复') months[r.d]['评论']++;
+    else if (months[r.d][r.t] !== undefined) months[r.d][r.t]++;
+  });
+  order.sort();
+  var box = document.getElementById('trend-box');
+  if (order.length === 0) {
+    box.innerHTML = '<div class="trend-empty">当前筛选范围内暂无数据</div>';
+    return;
+  }
+  var W = 820, H = 210, L = 46, R = 18, T = 28, B = 36;
+  var iw = W - L - R, ih = H - T - B;
+  var maxV = 1;
+  order.forEach(function (m) {
+    var d = months[m];
+    maxV = Math.max(maxV, d['评论'], d['转发'], d['点赞']);
+  });
+  function x(i) { return order.length === 1 ? L + iw / 2 : L + i * iw / (order.length - 1); }
+  function y(v) { return T + ih - (v / maxV) * ih; }
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" class="trend-svg" preserveAspectRatio="xMidYMid meet">';
+  for (var g = 0; g <= 4; g++) {
+    var gy = T + ih * g / 4;
+    var gv = Math.round(maxV * (4 - g) / 4);
+    s += '<line x1="' + L + '" y1="' + gy + '" x2="' + (W - R) + '" y2="' + gy + '" stroke="#e8edf3" stroke-width="1"/>';
+    s += '<text x="' + (L - 6) + '" y="' + (gy + 4) + '" text-anchor="end" class="trend-axis">' + gv + '</text>';
+  }
+  order.forEach(function (m, i) {
+    s += '<text x="' + x(i) + '" y="' + (H - B + 16) + '" text-anchor="middle" class="trend-x">' + m + '</text>';
+  });
+  ['评论', '转发', '点赞'].forEach(function (k) {
+    var pts = order.map(function (m, i) { return x(i) + ',' + y(months[m][k]); }).join(' ');
+    s += '<polyline points="' + pts + '" fill="none" stroke="' + TREND_COLORS[k] + '" stroke-width="2"/>';
+    order.forEach(function (m, i) {
+      var cx = x(i), cy = y(months[m][k]);
+      s += '<circle cx="' + cx + '" cy="' + cy + '" r="3.5" fill="#fff" stroke="' + TREND_COLORS[k] + '" stroke-width="2"/>';
+      s += '<text x="' + cx + '" y="' + (cy - 7) + '" text-anchor="middle" class="trend-num" fill="' + TREND_COLORS[k] + '">' + months[m][k] + '</text>';
+    });
+  });
+  s += '</svg>';
+  box.innerHTML = s;
+}
+
+function applyFilter() {
+  var kw = (document.getElementById('kw').value || '').trim().toLowerCase();
+  var ty = document.getElementById('ftype').value;
+  var d0 = document.getElementById('fstart').value;
+  var d1 = document.getElementById('fend').value;
+  var shown = 0;
+  document.querySelectorAll('.card').forEach(function (c) {
+    var ok = true;
+    if (ty && c.getAttribute('data-type') !== ty) ok = false;
+    if (ok && kw && (c.getAttribute('data-search') || '').indexOf(kw) === -1) ok = false;
+    if (ok && d0 && (c.getAttribute('data-day') || '') < d0) ok = false;
+    if (ok && d1 && (c.getAttribute('data-day') || '') > d1) ok = false;
+    c.style.display = ok ? '' : 'none';
+    if (ok) shown++;
+  });
+  document.getElementById('fcnt').textContent = '显示 ' + shown + ' / ' + TOTAL_CARDS + ' 条';
+  refreshStats();
+  buildTrend();
+}
+
+function clearFilter() {
+  document.getElementById('kw').value = '';
+  document.getElementById('ftype').value = '';
+  document.getElementById('fstart').value = '';
+  document.getElementById('fend').value = '';
+  applyFilter();
+}
+
+showZone('toB');
+applyFilter();
+
+
+</script>
+</body>
+</html>

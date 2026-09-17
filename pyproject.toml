@@ -1,0 +1,180 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weibo-interaction-query"
+version = "2.0.0"
+description = "提取两个微博用户之间的双向互动记录（转发 / 评论 / 楼中楼回复 / @提及 / 点赞），导出 HTML 日志、Excel、CSV"
+readme = "README.md"
+# 代码里用到 PEP 701 的 f-string（3.12 起支持），所以下限是 3.12；
+# 打包产物用 3.13 构建。
+requires-python = ">=3.12"
+license = { text = "MIT" }
+keywords = ["weibo", "crawler", "tkinter", "pyinstaller", "typing"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+]
+
+dependencies = [
+    "requests>=2.31,<3",
+    "openpyxl>=3.1,<4",
+]
+
+[project.optional-dependencies]
+# Pillow 仅 GUI 版需要（把登录二维码显示在窗口里）
+gui = ["Pillow>=10.0"]
+dev = [
+    # ruff 下限对齐已验证的版本：CI 会跑 ruff format --check，
+    # 而不同版本 formatter 的输出可能有差异，版本漂移会直接让 CI 变红。
+    "ruff>=0.16",
+    "mypy>=1.11",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+# 打包用。与 dev 分开是有意的：PyInstaller 只需要在打包环境里存在，
+# 没必要混进开发/测试环境。
+build = ["pyinstaller>=6.22"]
+
+[project.scripts]
+weibo-interaction-query = "main:main"
+
+[tool.setuptools]
+py-modules = [
+    "analyzer", "build_mode", "checkpoint", "client", "config",
+    "exporter", "fetchers", "gui_app", "login", "main",
+    "models", "server", "utils",
+]
+
+# ---------------------------------------------------------------------------
+# ruff —— 代码检查与格式化
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = [".build", ".probe_out", "site", "_internal"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+    "ANN",  # flake8-annotations —— 强制函数签名带类型注解
+    "RUF",  # ruff 自有规则
+]
+ignore = [
+    # 微博接口返回的是动态 JSON，链路上必须允许 Any
+    "ANN401",
+    # 中文全角标点：本项目的注释与用户可见文案都是中文
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "analyzer", "build_mode", "checkpoint", "client", "config",
+    "exporter", "fetchers", "gui_app", "login", "main",
+    "models", "server", "utils",
+    # 测试辅助模块（tests/_support.py）
+    "_support",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# exporter.py 内嵌 HTML/CSS/JS 模板字符串（浏览器端代码），单行长度由前端排版决定，
+# 不适用 Python 的代码行宽约束；把它们折行反而会让生成的页面结构难以对照。
+"exporter.py" = ["E501"]
+# 打包脚本与自检脚本是一次性工具，不强制注释率与文档字符串
+"build.py" = ["ANN001", "ANN201", "ANN202"]
+"probe_frozen.py" = ["ANN001", "ANN201", "ANN202"]
+"make_sample_report.py" = ["ANN001", "ANN201", "ANN202"]
+"verify_package.py" = ["ANN001", "ANN201"]
+"verify_assemble.py" = ["ANN001", "ANN201"]
+# smoke_test.py 是单文件线性脚本，刻意让「一段测试 = 一段自包含代码」，
+# 因此各测试段就近 import；而这些模块必须先 sys.path.insert 才能导入，E402 不可避免。
+# 函数签名仍强制注解（ANN 规则不豁免）。
+"smoke_test.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# mypy —— 静态类型检查
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+# 本项目只跑 Windows：GUI 用 tkinter、登录态用 DPAPI（ctypes.windll）、
+# 打开产物用 os.startfile。mypy 默认按**运行它的主机**选类型桩，
+# 于是同一份代码在 Windows 上过、在 CI 的 Linux runner 上不过
+# （报 ctypes.windll / os.startfile 不存在，并把 sys.platform 判断后的
+# 代码判成 unreachable）。显式钉住目标平台，结果就与主机无关了。
+platform = "win32"
+# 只检查应用模块：打包/自检脚本大量调用 PyInstaller 内部 API（无类型桩），
+# 测试代码则刻意允许宽松（构造假数据时会大量使用 dict[str, Any]）。
+files = [
+    "analyzer.py", "build_mode.py", "checkpoint.py", "client.py", "config.py",
+    "exporter.py", "fetchers.py", "gui_app.py", "login.py", "main.py",
+    "models.py", "server.py", "utils.py",
+]
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+
+# 函数签名必须带注解（与 ruff 的 ANN 规则对齐）
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+
+# 常见易错点
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+strict_equality = true
+extra_checks = true
+
+# requests / openpyxl / PIL 都有官方类型标注；其余第三方库缺桩时忽略
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# 打包/自检脚本大量使用 PyInstaller 内部 API（无类型桩）
+module = ["build", "probe_frozen", "verify_package", "verify_assemble", "make_sample_report"]
+ignore_errors = true
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers --strict-config"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["."]
+branch = true
+omit = [
+    "tests/*",
+    "build.py",
+    "probe_frozen.py",
+    "make_sample_report.py",
+    "verify_package.py",
+    "verify_assemble.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

@@ -1,0 +1,90 @@
+name: CI
+
+# 触发条件：推送到主分支、任何 PR、以及手动触发
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+# 同一分支的重复推送只保留最新一次，省额度
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 代码与日志里有大量中文，强制 UTF-8 避免 Windows 控制台乱码
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 静态检查：ruff（lint + format）+ mypy（类型）
+  # ---------------------------------------------------------------------------
+  lint:
+    name: lint · ruff + format + mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: ruff check
+        run: ruff check --output-format=github .
+
+      - name: ruff format --check
+        # 与 lint 分开：格式问题不该混进 lint 结果，排查时也更清楚
+        run: ruff format --check --diff .
+
+      - name: mypy
+        # 无参数运行：文件列表写在 pyproject.toml 的 [tool.mypy] files 里
+        run: mypy
+
+  # ---------------------------------------------------------------------------
+  # 单元测试：Windows 上跑（应用是 tkinter GUI + DPAPI，只在 Windows 才有意义）
+  # ---------------------------------------------------------------------------
+  test:
+    name: test · Python ${{ matrix.python-version }} · windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,gui]"
+
+      - name: pytest
+        run: pytest --cov --cov-report=term-missing --cov-report=xml
+
+      - name: 冒烟测试（119 项断言）
+        # 项目自带的端到端脚本，覆盖 pytest 未涉及的部分：
+        # 真实构建 GUI 后读控件状态、DPAPI 加解密往返与篡改检测、
+        # 打包路径解析。Tk 起不来时只跳过 GUI 那一段，不会误报失败。
+        run: python smoke_test.py
+
+      - name: 上传覆盖率报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: ignore

@@ -1,0 +1,65 @@
+# ---------- 运行时数据（含微博登录态，绝不入库） ----------
+data/
+!data/.gitkeep
+
+# ---------- PyInstaller 中间产物 ----------
+.build/
+build/
+dist/
+*.spec
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+.eggs/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ---------- 本地临时 ----------
+*.log
+*.tmp
+~$*
+
+# ---------- 本地校验临时输出 ----------
+.probe_out/
+
+# ---------- 本机个人脚本 ----------
+# 这三个是作者本机的一次性快捷方式：写死了自己的微博 uid 与本机绝对路径，
+# 换台机器就跑不通，且 uid 属于个人数据。保留在本地磁盘，不入库。
+刷新数据.bat
+查看互动日志.bat
+weibo_refresh_trigger.vbs
+
+# ---------- 本机私有构建配置 ----------
+# 用来覆盖 build.py 的路径常量（本机目录不写进源码）。
+# 模板见 build.local.example.json。
+build.local.json
+
+# ---------- 测试 / 静态检查缓存与报告 ----------
+# 注：pytest / mypy / ruff 会在各自缓存目录里写一个内容为 `*` 的 .gitignore，
+# 所以它们本来就不会被跟踪；这里显式列出是为了不依赖那个隐式行为。
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/

@@ -1,0 +1,18 @@
+# 统一换行符处理：仓库内一律 LF，检出到 Windows 时转 CRLF。
+# 避免「同一份文件在不同机器上 diff 出一堆换行差异」。
+* text=auto
+
+*.py   text diff=python
+*.md   text
+*.txt  text
+*.json text
+*.yml  text
+*.yaml text
+*.bat  text eol=crlf
+*.vbs  text eol=crlf
+
+# 二进制
+*.png  binary
+*.ico  binary
+*.xlsx binary
+*.db   binary

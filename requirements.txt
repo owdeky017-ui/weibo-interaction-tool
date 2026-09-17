@@ -1,0 +1,9 @@
+# 微博互动查询器 · 运行依赖
+#
+# 已移除 pandas / numpy：Excel 与 CSV 导出改用 openpyxl + 标准库 csv，
+# 打包体积因此减少约 19 MB，冷启动也更快（见 exporter.py）。
+requests>=2.31,<3
+openpyxl>=3.1,<4
+# Pillow 仅 GUI 版需要（把二维码图片显示在窗口里）；
+# 只用命令行 main.py 的话可以不装，此时二维码会改为用系统看图程序打开。
+Pillow>=10.0
