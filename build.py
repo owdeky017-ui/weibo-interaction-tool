@@ -239,7 +239,10 @@ def resolve_python(explicit=None):
 
 def write_build_mode(mode):
     path = os.path.join(PROJ, "build_mode.py")
-    with open(path, "w", encoding="utf-8") as f:
+    # newline="\n" 不能省：默认的文本模式在 Windows 上会把 \n 写成 \r\n，
+    # 而仓库里所有 .py 都是 LF（.gitattributes 的 `*.py text`），
+    # 于是每次打包后 git status 都会多出一个「内容没变、换行符变了」的假 diff。
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(BUILD_MODE_TEMPLATE.format(mode=mode))
     return path
 
@@ -256,7 +259,9 @@ def restore_build_mode(original):
     if original is None:
         return
     try:
-        with open(os.path.join(PROJ, "build_mode.py"), "w", encoding="utf-8") as f:
+        # newline="\n" 与 write_build_mode 一致：这个函数在打包**结束时**才跑，
+        # 是最后一次写入，漏了它前面的修复就白做（假 diff 依旧出现）。
+        with open(os.path.join(PROJ, "build_mode.py"), "w", encoding="utf-8", newline="\n") as f:
             f.write(original)
     except Exception:
         pass

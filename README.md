@@ -22,6 +22,11 @@
 用户A 固定为当前扫码登录的账号、输入框只读，只需要填用户B。这个约束是**有意设计的**，
 不是省事 —— 理由见第六节。
 
+> **不想装 Python？** 有现成的 Windows 免安装版：到
+> [Releases](https://github.com/owdeky017-ui/weibo-interaction-tool/releases/latest)
+> 下载 zip，解压后双击 `WeiboInteractionQuery.exe` 就能用（不需要 Python 环境，
+> 也不需要联网装依赖）。想读源码或自己打包看第八节。
+
 ---
 
 ## 一、性能优化

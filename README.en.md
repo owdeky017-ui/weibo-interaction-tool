@@ -26,6 +26,12 @@ self-contained HTML log.
 User A is locked to the account you scanned in with — the input box is read-only. You only
 fill in User B. That constraint is deliberate, not a shortcut; see §6.
 
+> **Don't want to install Python?** A ready-to-run Windows build is attached to
+> [Releases](https://github.com/owdeky017-ui/weibo-interaction-tool/releases/latest) —
+> download the zip, unzip it, and double-click `WeiboInteractionQuery.exe`.
+> No Python and no dependency installs required. For the source, or to build it
+> yourself, see §8.
+
 ---
 
 ## 1. Performance work

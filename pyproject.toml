@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "weibo-interaction-query"
 version = "2.0.0"
-description = "提取两个微博用户之间的双向互动记录（转发 / 评论 / 楼中楼回复 / @提及 / 点赞），导出 HTML 日志、Excel、CSV"
+description = "提取「当前登录账号」与另一个微博用户之间的互动记录（转发 / 评论 / 楼中楼回复 / @提及 / 点赞），导出 HTML 日志、Excel、CSV"
 readme = "README.md"
 # 代码里用到 PEP 701 的 f-string（3.12 起支持），所以下限是 3.12；
 # 打包产物用 3.13 构建。
