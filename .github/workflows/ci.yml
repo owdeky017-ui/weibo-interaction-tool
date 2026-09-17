@@ -18,6 +18,15 @@ env:
   PYTHONIOENCODING: utf-8
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
+# 所有 actions 都用浮动的主版本标签（@v7），不钉到具体补丁版：
+# 补丁由 GitHub 自己维护，钉死反而收不到安全修复；主版本内的行为是
+# 向后兼容的，真出问题会在日志里以弃用警告的形式提前暴露出来
+# （这次从 @v4 升到 @v7 就是这么发现的）。
+#
+# 注意：checkout / setup-python / upload-artifact 从 v6 起要求
+# Actions Runner >= 2.327.1。GitHub 托管 runner 始终满足，
+# 但将来若改用自建 runner，需要先确认版本。
+
 jobs:
   # ---------------------------------------------------------------------------
   # 静态检查：ruff（lint + format）+ mypy（类型）
@@ -26,9 +35,9 @@ jobs:
     name: lint · ruff + format + mypy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -60,9 +69,9 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -83,7 +92,7 @@ jobs:
 
       - name: 上传覆盖率报告
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.python-version }}
           path: coverage.xml
