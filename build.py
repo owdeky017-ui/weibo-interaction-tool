@@ -238,30 +238,39 @@ def resolve_python(explicit=None):
 
 
 def write_build_mode(mode):
+    """把 ``build_mode.A_MODE`` 写成目标值。
+
+    ``newline="\\n"`` 不能省：默认的文本模式在 Windows 上会把 ``\\n``
+    写成 ``\\r\\n``。配合下面 ``restore_build_mode`` 的字节级还原，
+    打包不会在工作区留下任何改动。
+    """
     path = os.path.join(PROJ, "build_mode.py")
-    # newline="\n" 不能省：默认的文本模式在 Windows 上会把 \n 写成 \r\n，
-    # 而仓库里所有 .py 都是 LF（.gitattributes 的 `*.py text`），
-    # 于是每次打包后 git status 都会多出一个「内容没变、换行符变了」的假 diff。
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(BUILD_MODE_TEMPLATE.format(mode=mode))
     return path
 
 
 def read_build_mode():
+    """读回 ``build_mode.py`` 的**原始字节**（不是文本）。
+
+    必须是字节：工作区的换行符取决于 checkout 配置 —— ``core.autocrlf=true``
+    的 Windows 环境检出就是 CRLF。按文本读会把 CRLF 归一成 LF，再写回去
+    就等于把工作区文件换了换行符，``git status`` 于是多出一个
+    「内容没变、只有换行符变了」的假 diff。
+    """
     try:
-        with open(os.path.join(PROJ, "build_mode.py"), encoding="utf-8") as f:
+        with open(os.path.join(PROJ, "build_mode.py"), "rb") as f:
             return f.read()
     except Exception:
         return None
 
 
 def restore_build_mode(original):
+    """把打包前的字节原样写回 —— 字节级还原，不做任何重新编码。"""
     if original is None:
         return
     try:
-        # newline="\n" 与 write_build_mode 一致：这个函数在打包**结束时**才跑，
-        # 是最后一次写入，漏了它前面的修复就白做（假 diff 依旧出现）。
-        with open(os.path.join(PROJ, "build_mode.py"), "w", encoding="utf-8", newline="\n") as f:
+        with open(os.path.join(PROJ, "build_mode.py"), "wb") as f:
             f.write(original)
     except Exception:
         pass
