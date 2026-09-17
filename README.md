@@ -376,7 +376,6 @@ weibo-interaction-opt/
 ├── README.md         # 本文件（中文）
 ├── README.en.md      # 英文版
 ├── LICENSE           # MIT
-├── PROVENANCE.md     # 产物溯源：早期分发版 → 还原出的基线 → 本仓库 → 构建产物
 ├── build.py          # 一键打包（写 A_MODE → PyInstaller → 组装目录 → 三层自检）
 ├── build.local.example.json  # 本机路径覆盖模板（复制为 build.local.json，后者不入库）
 ├── build_mode.py     # 编译期常量 A_MODE（由 build.py 写入，勿手改）

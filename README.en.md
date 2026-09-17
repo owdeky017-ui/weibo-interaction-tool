@@ -414,7 +414,6 @@ weibo-interaction-opt/
 ├── README.md         # Chinese README
 ├── README.en.md      # this file
 ├── LICENSE           # MIT
-├── PROVENANCE.md     # artefact provenance: earlier distribution → reconstructed baseline → this repo → build output
 ├── build.py          # one-shot build (write A_MODE → PyInstaller → assemble → three-layer check)
 ├── build.local.example.json  # template for local path overrides (copy to build.local.json, git-ignored)
 ├── build_mode.py     # compile-time constant A_MODE (written by build.py; do not edit by hand)
