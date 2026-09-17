@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>微博互动查询器 · 项目展示</title>
-<meta name="description" content="从 PyInstaller 打包产物反推源码，重构出一个可维护的桌面工具：性能优化实测、三层验证、产品约束收敛成编译期常量。">
+<meta name="description" content="一个从零开发到打包分发的 Windows 桌面工具：性能实测、三层验证、产品约束收敛成编译期常量。">
 <style>
   :root{
     --bg:#ffffff; --bg-soft:#f6f7f9; --bg-card:#ffffff;
@@ -245,11 +245,11 @@
 <!-- ===================== HERO ===================== -->
 <div class="hero">
   <div class="wrap">
-    <p class="eyebrow">个人项目 · 从 0 到 1 · 逆向重构 · 性能优化</p>
+    <p class="eyebrow">个人项目 · 从 0 到 1 · 完整开发工程</p>
     <h1>从一行 urllib 请求，走到三层验证的打包工程</h1>
     <p class="sub">
-      起点不是「接到一个需求」，而是 2026-08-15 一个很具体的念头：想量化一个微博博主的说话习惯。
-      手写抓取脚本 → 浏览器自动化 → 文本分析 → 桌面工具 → 逆向还原 → 性能改造，
+      起点是 2026-08-15 一个很具体的念头：想量化一个微博博主的说话习惯。
+      手写抓取脚本 → 浏览器自动化 → 文本分析 → 桌面工具 → 据产物还原源码 → 重建成完整工程，
       每一版都是因为上一版真的不够用才换的。
     </p>
     <div class="cta">
@@ -300,8 +300,8 @@
     <p class="eyebrow">从 0 到 1</p>
     <h2>八步走到今天，每一步都是因为上一版不够用</h2>
     <p class="lede">
-      没有现成工具，没有教程，也没有一开始就设计好的架构。
-      下面八步是实际发生的顺序 —— 包括「同一个问题连换三遍方案」的部分。
+      没有现成工具，也没有一开始就设计好的架构。
+      下面八步是实际发生的顺序，包括「同一个问题连换三遍方案」的部分。
     </p>
 
     <ol class="tl">
@@ -320,7 +320,7 @@
         <p class="when">2026-08-15 · 同一天</p>
         <p class="what">换 Selenium 驱动系统 Edge</p>
         <p class="why">
-          接口翻页拿不全，那就让浏览器自己去点「加载更多」——
+          接口翻页拿不全，那就让浏览器自己去点「加载更多」。
           用 Selenium 启动系统已装的 Edge，顺带复用真实登录态。
           <b>问题</b>：等待时机只能靠 <code>sleep</code> 猜，日志里刷满页面自身的 JS 报错。
         </p>
@@ -330,8 +330,8 @@
         <p class="when">2026-08-15 · 同一天</p>
         <p class="what">再换 Playwright：把翻页逻辑注入页面上下文</p>
         <p class="why">
-          关键转变 —— 不再从 Python 侧猜页面状态，而是用 <code>page.evaluate</code>
-          把翻页逻辑<b>注入页面里执行</b>，让 JS 自己循环请求、自己去重、自己判终止，
+          关键转变：把翻页逻辑<b>注入页面里执行</b>。用 <code>page.evaluate</code>
+          让 JS 循环请求、去重、判断终止，
           最后把累积结果一次性交回 Python。
           <b>结果</b>：稳定拿到 1461 条微博。
         </p>
@@ -343,7 +343,7 @@
         <p class="why">
           清洗话题标签 / @ / URL 之后，统计表情符号、语气词、标点习惯、自称、句长分布、
           发博时间分布，再提取代表性台词。
-          <b>这一天的收获不是脚本，而是意识到：抓取只是手段，真问题是「怎么量化一个人的表达习惯」。</b>
+          这一天的收获是意识到：抓取只是手段，真问题是「怎么量化一个人的表达习惯」。
         </p>
       </li>
 
@@ -351,15 +351,15 @@
         <p class="when">之后</p>
         <p class="what">从「一个人」扩展到「两个人」</p>
         <p class="why">
-          需求变了：不再只看一个人发了什么，而是看<b>两个人之间发生过什么</b> ——
-          转发、评论、评论回复、点赞。这一步把项目从「一次性爬虫脚本」推成「有状态的应用」：
+          需求变了：从「一个人发了什么」变成<b>「两个人之间发生过什么」</b>，
+          也就是转发、评论、评论回复、点赞。这一步把项目从「一次性爬虫脚本」推成「有状态的应用」：
           必须处理增量扫描、断点续传、跨次去重、请求限速、风控退避。
         </p>
       </li>
 
       <li>
         <p class="when">之后</p>
-        <p class="what">做成桌面工具，而不是命令行脚本</p>
+        <p class="what">从命令行脚本做成桌面工具</p>
         <p class="why">
           要给不用命令行的人用，就得有界面。改成 tkinter GUI +
           扫码登录 + 一键导出 Excel / CSV / HTML，
@@ -369,7 +369,7 @@
 
       <li class="key">
         <p class="when">本月</p>
-        <p class="what">手上只剩打包产物，于是逆向还原</p>
+        <p class="what">源码散失，只剩打包产物</p>
         <p class="why">
           要改进它，先得知道它到底怎么写的。Python 3.13 没有可用的反编译器
           （uncompyle6 止于 3.8、decompyle3 止于 3.9），所以只能从 PYZ 里读字节码、
@@ -379,11 +379,11 @@
 
       <li>
         <p class="when">本月</p>
-        <p class="what">建独立改造工程，做工程化收口</p>
+        <p class="what">重建成完整源码工程</p>
         <p class="why">
-          随后找到原始源码，据此新建独立工程：六项性能改造、登录态加密、
+          据还原出的源码重建成完整工程：六项性能优化、登录态加密、
           三层打包验证、约束收敛成编译期常量，以及一整套自动化测试。
-          <b>原分发目录全程未改动</b>（exe 的 MD5 前后一致）。
+          早期分发目录全程未改动（exe 的 MD5 前后一致）。
         </p>
       </li>
     </ol>
@@ -420,7 +420,7 @@
       <p class="t">顺带发现的两个「看起来是 bug、其实不是」的点</p>
       <p class="small">
         ① <code>fetch_reposts</code> / <code>fetch_attitudes</code> 的 <code>start_ts</code>
-        参数确实是死参数（函数体从未使用），但<b>按时间剪枝在这个场景永不触发</b> ——
+        参数确实是死参数（函数体从未使用），但按时间剪枝在这个场景永不触发：
         微博的创建时间必然 ≥ 扫描窗口起点，互动时间又必然 ≥ 微博创建时间。
         真正省请求的是「命中即停」。<br>
         ② exporter 里对正文的 120 字截断是死代码：截断后的数据只用于汇总表，
@@ -436,7 +436,7 @@
     <p class="eyebrow">功能</p>
     <h2>它做什么</h2>
     <p class="lede">
-      提取两个微博用户之间的<b>双向</b>互动记录，导出成可检索的单文件 HTML 日志
+      提取「当前登录账号」与另一个微博用户之间的<b>双向</b>互动记录，导出成可检索的单文件 HTML 日志
       （可选 Excel / CSV）。所有互动类型都支持 A→B 与 B→A 两个方向。
     </p>
 
@@ -639,7 +639,7 @@
       <div class="card">
         <h3>并发度怎么定</h3>
         <p class="small muted">
-          并发只影响「同一时刻几个请求在途」，不改变请求总数与平均 QPS ——
+          并发只影响「同一时刻几个请求在途」，不改变请求总数与平均 QPS，
           所以不会让风控更容易触发。
         </p>
         <div class="tw" style="margin-top:10px">
@@ -657,10 +657,10 @@
       <div class="card">
         <h3>并发带来的两个必须处理的细节</h3>
         <ul class="clean small">
-          <li><b>Session 不是线程安全的</b> —— <code>requests.Session</code> 的 cookie jar
-            有共享状态。用 <code>threading.local</code> 给每个 worker 一份独立 Session
+          <li>Session 不是线程安全的。<code>requests.Session</code> 的 cookie jar
+            有共享状态，所以用 <code>threading.local</code> 给每个 worker 一份独立 Session
             （慢速单线程时仍复用同一个，行为与原来完全一致）。</li>
-          <li><b>风控异常必须由调用线程上抛</b> —— 否则外层「等 180 秒后重试」的语义会丢。
+          <li>风控异常必须由调用线程上抛，否则外层「等 180 秒后重试」的语义会丢。
             worker 里捕获 <code>RiskControlError</code> 收集起来，回到调用线程统一抛。</li>
         </ul>
       </div>
@@ -672,7 +672,7 @@
 <section id="constraint">
   <div class="wrap">
     <p class="eyebrow">约束落地</p>
-    <h2>产品约束做成编译期常量，不是散落各处的 if</h2>
+    <h2>产品约束做成一个编译期常量</h2>
     <p class="lede">
       「用户A 只能是当前扫码登录的账号」是产品的硬约束。它没有散落在业务代码里，
       而是收敛成一个编译期常量：<code>build_mode.A_MODE</code>，
@@ -692,8 +692,7 @@
         <h3><span class="pill p-info">可测试性</span> 常量带来的另一个好处</h3>
         <p class="small muted">
           测试可以在同一进程里替换 <code>build_mode</code> 再重新导入模块，
-          让这个常量的各个取值都被跑到 —— 而且是<b>真实构建 GUI 后读控件状态</b>，
-          不是断言一个常量。
+          让这个常量的各个取值都被跑到。测试真实构建 GUI 后读控件状态。
         </p>
       </div>
     </div>
@@ -717,11 +716,11 @@
     </div>
 
     <div class="note" style="margin-top:18px">
-      <p class="t">最后一项不是洁癖，是数据正确性问题</p>
+      <p class="t">最后一项关系到数据正确性</p>
       <p class="small">
-        「用户A = 登录账号」这个约束下，如果重新扫码时换了账号，A 就变了 ——
+        「用户A = 登录账号」这个约束下，如果重新扫码时换了账号，A 就变了，
         断点里的历史记录和 <code>scanned_mids</code> 都不再对应新的用户对，
-        继续跑会把两个人的记录混在一起。所以必须中止而不是续传。
+        继续跑会把两个人的记录混在一起。所以程序必须中止，不能续传。
       </p>
     </div>
   </div>
@@ -747,11 +746,11 @@
           <li>断点：增量追加、主键去重、旧 JSON 迁移、文件损坏容错</li>
           <li>令牌桶：突发额度、平均速率不超标</li>
           <li>并发：耗时、异常语义</li>
-          <li>模式分支：<b>真实构建 GUI 后读控件状态</b>，而不是断言常量</li>
+          <li>模式分支：真实构建 GUI 后读控件状态</li>
           <li>登录态加密：往返、篡改检测、明文自动升级</li>
         </ul>
         <p class="small muted" style="margin-top:10px">
-          另有 <code>pytest</code> 用例集（<code>tests/</code>，207 项）覆盖
+          另有 <code>pytest</code> 用例集（<code>tests/</code>，210 项）覆盖
           client / analyzer / exporter / checkpoint / login / fetchers / utils
           的边界条件，CI 上跑覆盖率。
         </p>
@@ -762,13 +761,13 @@
         <p class="small muted"><code>build.py</code> 内建自检</p>
         <ul class="clean small" style="margin-top:10px">
           <li>目录结构完整</li>
-          <li><b>直接读 exe 内嵌 PYZ 里 <code>build_mode</code> 的编译常量</b>，
+          <li>直接读 exe 内嵌 PYZ 里 <code>build_mode</code> 的编译常量，
             确认等于目标模式</li>
           <li>产出 exe 的 sha256 与预期一致</li>
           <li><code>data/</code> 不含任何运行时数据（不会把登录态打进分发包）</li>
         </ul>
         <p class="small muted" style="margin-top:10px">
-          第二项比「比对时间戳」强得多 —— 前者只能推断，这个是直接读编译产物。
+          第二项比「比对时间戳」强得多：前者只能推断，这个是直接读编译产物。
         </p>
       </div>
 
@@ -777,7 +776,7 @@
         <p class="small muted"><code>build.py --probe</code></p>
         <p class="small" style="margin-top:8px">
           PyInstaller 只能证明「文件在包里」，不能证明「运行时可用」。
-          所以用<b>与主程序相同的打包选项</b>把自检脚本编成控制台 exe 并真跑一次。
+          所以用与主程序相同的打包选项把自检脚本编成控制台 exe 并真跑一次。
         </p>
         <ul class="clean small" style="margin-top:10px">
           <li>全部依赖导入</li>
@@ -812,8 +811,8 @@ $ python build.py --probe
         CI 分两个 job：<code>ruff check</code> + <code>ruff format --check</code> +
         <code>mypy</code> 跑在 Linux；<code>pytest</code>（带覆盖率）与
         <code>smoke_test.py</code> 跑在 Windows，Python 3.12 / 3.13 双版本。
-        上面这三层依赖本机的 PyInstaller，不适合放进 CI，所以保持手动跑 ——
-        <b>能自动化的自动化，不能的就明确说清楚它是手动的</b>。
+        上面这三层依赖本机的 PyInstaller，不适合放进 CI，所以保持手动跑。
+        CI 里跑的是能自动化的那部分。
       </p>
     </div>
   </div>
@@ -825,7 +824,7 @@ $ python build.py --probe
     <p class="eyebrow">踩过的坑</p>
     <h2>六件「写的时候没想到、跑起来才炸」的事</h2>
     <p class="lede">
-      功能列表谁都能列，真正说明「有没有亲手跑过」的是这些细节。
+      这些都是写的时候没想到、跑起来才炸的事。
       每一条都改过代码，不是事后总结。
     </p>
 
@@ -838,9 +837,9 @@ $ python build.py --probe
           实测报 <code>SAFE_DELETE_BULK_CONFIRM_REQUIRED</code>。
         </p>
         <p class="small muted">
-          解法不是去找一个「确认删除」的开关，而是<b>把删除动作本身去掉</b>：
+          解法是把删除动作本身去掉：
           每次输出到全新的 <code>dist_&lt;时间戳&gt;</code> 目录，组装完再移动。
-          <code>--clean</code> 也从默认改为可选 —— 清缓存只会拖慢下次打包。
+          <code>--clean</code> 也从默认改为可选，清缓存只会拖慢下次打包。
         </p>
       </div>
 
@@ -863,9 +862,9 @@ $ python build.py --probe
           <code>PIL/ImageTk.py</code>，一度判断为依赖缺失。
         </p>
         <p class="small muted">
-          实际上<b>纯 Python 模块被编译进 exe 内嵌的 PYZ</b>（本例 729 个模块），
+          实际上纯 Python 模块被编译进 exe 内嵌的 PYZ（本例 729 个模块），
           只有带 <code>.pyd</code> 的包才会以目录形式落在
-          <code>_internal/</code>。要确认得展开 PYZ 去数模块，不能看目录 ——
+          <code>_internal/</code>。要确认得展开 PYZ 去数模块，不能看目录。
           顺带才确认了 pandas / numpy 确实没被混进去。
         </p>
       </div>
@@ -874,7 +873,7 @@ $ python build.py --probe
         <h3><span class="num">4</span> DPAPI 的完整性保护有边界</h3>
         <p class="small muted">
           加密改造后做逐字节篡改测试：payload 区 274 字节全部被检测到。
-          但 DPAPI blob 的<b>字节 4–19 不受完整性保护</b> ——
+          但 DPAPI blob 的字节 4 到 19 不受完整性保护。
           那是 <code>dwFlags</code> 加 16 字节 description，属 API 已知行为。
         </p>
         <p class="small muted">
@@ -887,13 +886,13 @@ $ python build.py --probe
         <h3><span class="num">5</span> 「能启动」不等于「能运行」</h3>
         <p class="small muted">
           最初的验证只做到「exe 起来后存活 12 秒不崩」。
-          这只能证明启动路径没炸，<b>证明不了运行时可用</b>：
+          这只能证明启动路径没炸，证明不了运行时可用：
           证书链缺 <code>cacert.pem</code>、<code>sqlite3.dll</code> 版本不对、
-          <code>PIL.ImageTk</code> 找不到 <code>_imaging</code> ——
+          <code>PIL.ImageTk</code> 找不到 <code>_imaging</code>，
           这三类都要真跑一次才暴露。
         </p>
         <p class="small muted">
-          这就是「三层验证」里第 3 层存在的唯一理由。
+          这就是「三层验证」第 3 层要解决的问题。
         </p>
       </div>
 
@@ -901,20 +900,19 @@ $ python build.py --probe
         <h3><span class="num">6</span> CI 从没真正跑过，第一次跑就红了两次</h3>
         <p class="small muted">
           仓库初始化时漏提交了 <code>models.py</code>、<code>tests/</code>、
-          <code>.github/workflows/ci.yml</code> 三块 ——
+          <code>.github/workflows/ci.yml</code> 三块。
           clone 下来既没有 CI 定义，也跑不了 pytest。
           补齐后推上去，第一次真正执行就暴露 <code>ruff check .</code>
           在测试脚本上的 87 项问题。
         </p>
         <p class="small muted">
-          更隐蔽的是第二个：<code>mypy</code> <b>在本机 Windows 上过，
-          在 CI 的 Linux runner 上不过</b> —— <code>ctypes.windll</code> 与
+          更隐蔽的是第二个：<code>mypy</code> 在本机 Windows 上过，
+          在 CI 的 Linux runner 上不过。<code>ctypes.windll</code> 与
           <code>os.startfile</code> 在 Linux 的类型桩里不存在，
           <code>sys.platform</code> 判断之后的代码还会被判成 unreachable。
           mypy 默认按运行它的主机选类型桩，解法是显式钉住目标平台。
         </p>
         <p class="small muted">
-          教训很直白：<b>本地跑得通 ≠ 仓库是完好的</b>。
           判断依据应该是「新机器 clone 下来能不能跑」。
         </p>
       </div>
@@ -928,7 +926,7 @@ $ python build.py --probe
     <p class="eyebrow">样例报告</p>
     <h2>实际导出的 HTML 日志长这样</h2>
     <p class="lede">
-      下面是<b>用程序真实的导出模块</b>生成的报告，只是把输入换成了合成数据 ——
+      下面是用程序真实的导出模块生成的报告，只是把输入换成了合成数据。
       排版、交互、统计逻辑都和你自己跑出来的完全一致。可以点进去搜关键词、切类型和日期。
     </p>
 
@@ -959,18 +957,18 @@ $ python build.py --probe
       <div class="card">
         <h3><span class="pill p-ok">已做</span> 登录态加密存储</h3>
         <p class="small muted">
-          原实现把含 <code>SUB</code>/<code>SUBP</code> 的登录态明文写在
-          <code>data/cookies.json</code> —— 任何能读到这个文件的人都能直接冒用账号。
+          早期版本把含 <code>SUB</code>/<code>SUBP</code> 的登录态明文写在
+          <code>data/cookies.json</code>，任何能读到这个文件的人都能直接冒用账号。
         </p>
         <ul class="clean small">
           <li>改用 Windows DPAPI 加密，附加熵绑定到本程序</li>
           <li>密文绑定当前 Windows 用户与机器，换机器解不开</li>
-          <li>旧的明文文件会被自动识别并<b>就地升级</b>，用户无感</li>
+          <li>旧的明文文件会被自动识别并就地升级，用户无感</li>
           <li>用 <code>CRYPTPROTECT_UI_FORBIDDEN</code>，打包成 GUI 后不会弹系统对话框</li>
           <li>DPAPI 不可用时退回明文，保证程序不会因加密而不可用</li>
         </ul>
         <p class="small muted" style="margin-top:8px">
-          实测：payload 区 274 字节逐字节篡改<b>全部被检测到</b>。
+          实测：payload 区 274 字节逐字节篡改全部被检测到。
           （DPAPI blob 的 header 4~19 字节不受完整性保护，属已知行为，不涉及密文内容。）
         </p>
       </div>
@@ -981,14 +979,14 @@ $ python build.py --probe
           把「扫码登录 + 抓取」搬成公开网站技术上可行，但我判断不应该做，三条理由：
         </p>
         <ul class="clean small">
-          <li><b>它必须让访客交出微博登录态。</b>服务器要保存每个访客的 cookie，
-            一旦被攻破就是批量账号失窃 —— 形态上与钓鱼站没有区别。</li>
-          <li><b>违反微博用户协议。</b>微博禁止自动化抓取，公开站点规模化运行
+          <li>它必须让访客交出微博登录态。服务器要保存每个访客的 cookie，
+            一旦被攻破就是批量账号失窃，形态上与钓鱼站没有区别。</li>
+          <li>违反微博用户协议。微博禁止自动化抓取，公开站点规模化运行
             必然被风控与 IP 封禁，且把违规行为放在了公网可查的位置。</li>
-          <li><b>抓到的是他人的互动数据。</b>公开提供「查某人和某人的互动」本身就是隐私问题。</li>
+          <li>抓到的是他人的互动数据。公开提供「查某人和某人的互动」本身就是隐私问题。</li>
         </ul>
         <p class="small muted" style="margin-top:8px">
-          所以这个项目保持为<b>本地桌面工具</b>：数据不出本机，
+          所以这个项目保持为本地桌面工具：数据不出本机，
           登录态加密存在本机，抓取速率受控且总量有限。
         </p>
       </div>
@@ -1004,9 +1002,9 @@ $ python build.py --probe
 
     <div class="grid g2">
       <div class="card">
-        <h3>为什么断点要用 SQLite 而不是 JSON</h3>
+        <h3>断点为什么从 JSON 换成 SQLite</h3>
         <p class="small muted">
-          原实现每次保存都要「读全量 → 按 <code>_key</code> 在内存里合并 → 写全量」，
+          早期版本每次保存都要「读全量 → 按 <code>_key</code> 在内存里合并 → 写全量」，
           复杂度 O(记录数)；实测单个断点文件已经涨到 665 KB，而且靠
           <code>os.replace</code> 做原子替换。改成 SQLite 后去重交给主键、
           只写新增、断电也不会把整份断点写坏。
@@ -1016,21 +1014,21 @@ $ python build.py --probe
       <div class="card">
         <h3>断点保存失败为什么不该静默</h3>
         <p class="small muted">
-          原实现是 <code>except Exception: pass</code>。断点写失败时用户毫无感知，
+          早期版本是 <code>except Exception: pass</code>。断点写失败时用户毫无感知，
           以为存了其实没存，下次「继续」会从更早的位置重扫甚至丢进度。
-          改成显式提示，但<b>不让提示本身的异常掩盖原始错误</b>。
+          改成显式提示，但不让提示本身的异常掩盖原始错误。
         </p>
       </div>
 
       <div class="card">
         <h3>去依赖时发现的死代码</h3>
         <p class="small muted">
-          原实现对正文做了 120 字截断。但截断后的数据只喂给汇总表（不涉及正文），
-          Excel / CSV 实际写进去的仍是完整记录 —— 这段截断<b>从来没生效过</b>。
+          早期版本对正文做了 120 字截断。但截断后的数据只喂给汇总表（不涉及正文），
+          Excel / CSV 实际写进去的仍是完整记录，这段截断从来没生效过。
         </p>
         <p class="small muted">
-          重构时很容易顺手「保持原行为」把死代码一并抄过来。判断依据应该是
-          <b>实际产物里是什么</b>，而不是源码里写了什么。
+          重构时很容易顺手「保持原行为」把死代码一并抄过来。判断依据该看
+          实际产物里是什么，源码里写了什么不算数。
         </p>
       </div>
 
@@ -1039,8 +1037,8 @@ $ python build.py --probe
         <p class="small muted">
           评论双排序剪枝只在三种情况下生效：时间序拿到的条数等于接口声明的
           <code>total_number</code>。如果被页数上限截断、条数少于声明值、
-          或者接口压根没返回这个字段，一律退回跑双排序 ——
-          <b>宁可多花请求，也不能漏数据</b>。
+          或者接口压根没返回这个字段，一律退回跑双排序：
+          宁可多花请求，也不能漏数据。
         </p>
       </div>
     </div>
@@ -1048,11 +1046,11 @@ $ python build.py --probe
     <div class="note warn" style="margin-top:20px">
       <p class="t">已知限制</p>
       <ul class="clean small">
-        <li><b>点赞数据可能不完整</b>：微博网页版没有公开的点赞列表接口，
+        <li>点赞数据可能不完整：微博网页版没有公开的点赞列表接口，
           改用移动端接口尽力尝试，接口不可用时自动暂停并在每 50 条微博后重试。</li>
-        <li><b>评论可能不全</b>：评论区存在折叠与拉黑隐藏机制，
+        <li>评论可能不全：评论区存在折叠与拉黑隐藏机制，
           被博主拉黑的用户其评论对公众完全隐藏，公开接口无法获取。</li>
-        <li><b>只能抓公开内容</b>：对方的隐私设置、已删除内容、仅粉丝可见的微博都拿不到。</li>
+        <li>只能抓公开内容：对方的隐私设置、已删除内容、仅粉丝可见的微博都拿不到。</li>
       </ul>
     </div>
   </div>
@@ -1061,7 +1059,7 @@ $ python build.py --probe
 <footer>
   <div class="wrap">
     <div>
-      个人项目 · 用于练习工程化改造与打包验证<br>
+      个人项目 · 从零开发到打包分发的完整工程<br>
       页面内所有数据均为合成样例，人物与微博内容均为虚构
     </div>
     <div>
